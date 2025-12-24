@@ -1,5 +1,4 @@
-// Inspect-It (ToolStack) — module-ready MVP
-// Purpose: Move-in / move-out inspection checklist with condition + notes + evidence refs
+// Inspect-It (ToolStack) — module-ready MVP (Styled v1: grey + lime/green accent)
 // Paste into: src/App.jsx
 // Requires: Tailwind v4 configured (same as other ToolStack apps).
 
@@ -26,7 +25,10 @@ function isoToday() {
 }
 
 function uid(prefix = "id") {
-  return (crypto?.randomUUID?.() || `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  return (
+    crypto?.randomUUID?.() ||
+    `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
 }
 
 function loadProfile() {
@@ -97,7 +99,11 @@ function defaultTemplate() {
 function loadState() {
   return (
     safeParse(localStorage.getItem(KEY), null) || {
-      meta: { appId: APP_ID, version: APP_VERSION, updatedAt: new Date().toISOString() },
+      meta: {
+        appId: APP_ID,
+        version: APP_VERSION,
+        updatedAt: new Date().toISOString(),
+      },
       template: defaultTemplate(),
       inspections: [],
     }
@@ -124,7 +130,6 @@ const CONDITION_OPTIONS = [
 function badgeClass(cond) {
   switch (cond) {
     case "damaged":
-      return "bg-red-100 text-red-800 border-red-200";
     case "missing":
       return "bg-red-100 text-red-800 border-red-200";
     case "worn":
@@ -135,6 +140,13 @@ function badgeClass(cond) {
       return "bg-emerald-100 text-emerald-800 border-emerald-200";
   }
 }
+
+const btnSecondary =
+  "px-3 py-2 rounded-xl bg-white border border-neutral-200 shadow-sm hover:bg-neutral-50 active:translate-y-[1px] transition";
+const btnPrimary =
+  "px-3 py-2 rounded-xl bg-neutral-900 text-white border border-neutral-900 shadow-sm hover:bg-neutral-800 active:translate-y-[1px] transition";
+const inputBase =
+  "w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25 focus:border-neutral-300";
 
 export default function App() {
   const [profile, setProfile] = useState(loadProfile());
@@ -150,17 +162,14 @@ export default function App() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const importRef = useRef(null);
 
-  // Persist profile
   useEffect(() => {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
   }, [profile]);
 
-  // Persist state
   useEffect(() => {
     localStorage.setItem(KEY, JSON.stringify(state));
   }, [state]);
 
-  // Draft inspection
   const [draft, setDraft] = useState(() => {
     const t = state.template;
     return {
@@ -216,7 +225,9 @@ export default function App() {
           ? s
           : {
               ...s,
-              items: s.items.map((it) => (it.id !== itemId ? it : { ...it, ...patch })),
+              items: s.items.map((it) =>
+                it.id !== itemId ? it : { ...it, ...patch }
+              ),
             }
       ),
     }));
@@ -274,7 +285,12 @@ export default function App() {
   }
 
   function deleteInspection(id) {
-    setState((prev) => saveState({ ...prev, inspections: (prev.inspections || []).filter((x) => x.id !== id) }));
+    setState((prev) =>
+      saveState({
+        ...prev,
+        inspections: (prev.inspections || []).filter((x) => x.id !== id),
+      })
+    );
   }
 
   function exportJSON() {
@@ -283,7 +299,9 @@ export default function App() {
       profile,
       data: state,
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -298,7 +316,8 @@ export default function App() {
       try {
         const parsed = JSON.parse(String(reader.result || ""));
         const incoming = parsed?.data;
-        if (!incoming?.template || !Array.isArray(incoming?.inspections)) throw new Error("Invalid import file");
+        if (!incoming?.template || !Array.isArray(incoming?.inspections))
+          throw new Error("Invalid import file");
         setProfile(parsed?.profile || profile);
         setState(saveState(incoming));
         resetDraft();
@@ -328,37 +347,28 @@ export default function App() {
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
+        {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="text-2xl font-bold">Inspect-It</div>
+            <div className="text-2xl font-bold tracking-tight">Inspect-It</div>
             <div className="text-sm text-neutral-600">
-              Module-ready ({moduleManifest.id}.{moduleManifest.version}) • Condition log • Evidence refs • Print/export
+              Module-ready ({moduleManifest.id}.{moduleManifest.version}) •
+              Condition log • Evidence refs • Print/export
             </div>
+            <div className="mt-3 h-[2px] w-80 rounded-full bg-gradient-to-r from-lime-400/0 via-lime-400 to-emerald-400/0" />
           </div>
 
           <div className="flex flex-wrap gap-2 justify-end">
-            <button
-              className="px-3 py-2 rounded-xl bg-white border border-neutral-200 shadow-sm hover:bg-neutral-50"
-              onClick={() => setPreviewOpen(true)}
-            >
+            <button className={btnSecondary} onClick={() => setPreviewOpen(true)}>
               Preview
             </button>
-            <button
-              className="px-3 py-2 rounded-xl bg-white border border-neutral-200 shadow-sm hover:bg-neutral-50"
-              onClick={printPreview}
-            >
+            <button className={btnSecondary} onClick={printPreview}>
               Print / Save PDF
             </button>
-            <button
-              className="px-3 py-2 rounded-xl bg-white border border-neutral-200 shadow-sm hover:bg-neutral-50"
-              onClick={exportJSON}
-            >
+            <button className={btnSecondary} onClick={exportJSON}>
               Export
             </button>
-            <button
-              className="px-3 py-2 rounded-xl bg-white border border-neutral-200 shadow-sm hover:bg-neutral-50"
-              onClick={() => importRef.current?.click()}
-            >
+            <button className={btnPrimary} onClick={() => importRef.current?.click()}>
               Import
             </button>
             <input
@@ -375,15 +385,16 @@ export default function App() {
           </div>
         </div>
 
+        {/* Main grid */}
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Profile */}
+          {/* Profile card */}
           <div className="bg-white border border-neutral-200 rounded-2xl shadow-sm p-4">
             <div className="font-semibold">Profile (shared)</div>
             <div className="mt-3 space-y-2">
               <label className="block text-sm">
                 <div className="text-neutral-600">Organization</div>
                 <input
-                  className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200"
+                  className={inputBase}
                   value={profile.org}
                   onChange={(e) => setProfile({ ...profile, org: e.target.value })}
                 />
@@ -391,7 +402,7 @@ export default function App() {
               <label className="block text-sm">
                 <div className="text-neutral-600">User</div>
                 <input
-                  className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200"
+                  className={inputBase}
                   value={profile.user}
                   onChange={(e) => setProfile({ ...profile, user: e.target.value })}
                 />
@@ -399,9 +410,11 @@ export default function App() {
               <label className="block text-sm">
                 <div className="text-neutral-600">Language</div>
                 <select
-                  className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200 bg-white"
+                  className={inputBase}
                   value={profile.language}
-                  onChange={(e) => setProfile({ ...profile, language: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, language: e.target.value })
+                  }
                 >
                   <option value="EN">EN</option>
                   <option value="DE">DE</option>
@@ -413,13 +426,14 @@ export default function App() {
             </div>
           </div>
 
-          {/* Draft */}
+          {/* Draft card */}
           <div className="bg-white border border-neutral-200 rounded-2xl shadow-sm p-4 lg:col-span-3">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <div className="font-semibold">New inspection</div>
                 <div className="text-sm text-neutral-600">
-                  Items: {totals.total} • Damaged: {totals.damaged} • Worn: {totals.worn} • Missing: {totals.missing}
+                  Items: {totals.total} • Damaged: {totals.damaged} • Worn:{" "}
+                  {totals.worn} • Missing: {totals.missing}
                 </div>
               </div>
 
@@ -428,7 +442,7 @@ export default function App() {
                   <div className="text-neutral-600">Date</div>
                   <input
                     type="date"
-                    className="mt-1 px-3 py-2 rounded-xl border border-neutral-200"
+                    className={inputBase}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                   />
@@ -436,7 +450,7 @@ export default function App() {
                 <label className="text-sm">
                   <div className="text-neutral-600">Type</div>
                   <select
-                    className="mt-1 px-3 py-2 rounded-xl border border-neutral-200 bg-white"
+                    className={inputBase}
                     value={inspectionType}
                     onChange={(e) => setInspectionType(e.target.value)}
                   >
@@ -452,7 +466,7 @@ export default function App() {
               <label className="text-sm">
                 <div className="text-neutral-600">Property label</div>
                 <input
-                  className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200"
+                  className={inputBase}
                   value={propertyLabel}
                   onChange={(e) => setPropertyLabel(e.target.value)}
                   placeholder="e.g., Room 3 / Flat A"
@@ -461,7 +475,7 @@ export default function App() {
               <label className="text-sm">
                 <div className="text-neutral-600">Occupant(s)</div>
                 <input
-                  className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200"
+                  className={inputBase}
                   value={occupants}
                   onChange={(e) => setOccupants(e.target.value)}
                   placeholder="Names"
@@ -470,7 +484,7 @@ export default function App() {
               <label className="text-sm md:col-span-2">
                 <div className="text-neutral-600">Address</div>
                 <input
-                  className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200"
+                  className={inputBase}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Street, City"
@@ -481,30 +495,47 @@ export default function App() {
             <label className="block text-sm mt-3">
               <div className="text-neutral-600">General notes</div>
               <textarea
-                className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200 min-h-[90px]"
+                className={`${inputBase} min-h-[90px]`}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Context: keys received, meter readings, agreements, etc."
               />
             </label>
 
+            {/* Sections */}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
               {draft.sections.map((s) => (
-                <div key={s.id} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                <div
+                  key={s.id}
+                  className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3"
+                >
                   <div className="font-semibold">{s.title}</div>
                   <div className="mt-2 space-y-2">
                     {s.items.map((it) => (
-                      <div key={it.id} className="rounded-xl bg-white border border-neutral-200 p-2">
+                      <div
+                        key={it.id}
+                        className="rounded-xl bg-white border border-neutral-200 p-2"
+                      >
                         <div className="flex items-start justify-between gap-2">
                           <div className="text-sm font-medium">{it.label}</div>
                           <div className="flex items-center gap-2">
-                            <span className={"text-xs px-2 py-1 rounded-full border " + badgeClass(it.condition)}>
-                              {CONDITION_OPTIONS.find((o) => o.key === it.condition)?.label || "OK"}
+                            <span
+                              className={
+                                "text-xs px-2 py-1 rounded-full border " +
+                                badgeClass(it.condition)
+                              }
+                            >
+                              {CONDITION_OPTIONS.find((o) => o.key === it.condition)
+                                ?.label || "OK"}
                             </span>
                             <select
-                              className="text-sm px-2 py-1 rounded-xl border border-neutral-200 bg-white"
+                              className="text-sm px-2 py-1 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25"
                               value={it.condition}
-                              onChange={(e) => updateItem(s.id, it.id, { condition: e.target.value })}
+                              onChange={(e) =>
+                                updateItem(s.id, it.id, {
+                                  condition: e.target.value,
+                                })
+                              }
                             >
                               {CONDITION_OPTIONS.map((o) => (
                                 <option key={o.key} value={o.key}>
@@ -517,16 +548,22 @@ export default function App() {
 
                         <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
                           <input
-                            className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                            className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25"
                             placeholder="Note (what you see)"
                             value={it.note}
-                            onChange={(e) => updateItem(s.id, it.id, { note: e.target.value })}
+                            onChange={(e) =>
+                              updateItem(s.id, it.id, { note: e.target.value })
+                            }
                           />
                           <input
-                            className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                            className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25"
                             placeholder="Evidence ref (photo # / file / email)"
                             value={it.evidenceRef}
-                            onChange={(e) => updateItem(s.id, it.id, { evidenceRef: e.target.value })}
+                            onChange={(e) =>
+                              updateItem(s.id, it.id, {
+                                evidenceRef: e.target.value,
+                              })
+                            }
                           />
                         </div>
                       </div>
@@ -537,17 +574,11 @@ export default function App() {
             </div>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <button
-                className="px-3 py-2 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-50"
-                onClick={resetDraft}
-              >
+              <button className={btnSecondary} onClick={resetDraft}>
                 Reset
               </button>
 
-              <button
-                className="px-4 py-2 rounded-xl bg-neutral-900 text-white hover:bg-neutral-800"
-                onClick={saveInspection}
-              >
+              <button className={btnPrimary} onClick={saveInspection}>
                 Save inspection
               </button>
             </div>
@@ -558,7 +589,9 @@ export default function App() {
         <div className="mt-4 bg-white border border-neutral-200 rounded-2xl shadow-sm p-4">
           <div className="font-semibold">Saved inspections</div>
           {state.inspections.length === 0 ? (
-            <div className="mt-2 text-sm text-neutral-500">No saved inspections yet.</div>
+            <div className="mt-2 text-sm text-neutral-500">
+              No saved inspections yet.
+            </div>
           ) : (
             <div className="mt-3 overflow-auto">
               <table className="w-full text-sm">
@@ -578,9 +611,18 @@ export default function App() {
                     <tr key={x.id} className="border-b last:border-b-0">
                       <td className="py-2 pr-2 font-medium">{x.date}</td>
                       <td className="py-2 pr-2">{x.inspectionType}</td>
-                      <td className="py-2 pr-2">{x.propertyLabel || x.address || "-"}</td>
                       <td className="py-2 pr-2">
-                        <span className={"text-xs px-2 py-1 rounded-full border " + (x.summary?.damaged ? "bg-red-100 text-red-800 border-red-200" : "bg-emerald-100 text-emerald-800 border-emerald-200")}>
+                        {x.propertyLabel || x.address || "-"}
+                      </td>
+                      <td className="py-2 pr-2">
+                        <span
+                          className={
+                            "text-xs px-2 py-1 rounded-full border " +
+                            (x.summary?.damaged
+                              ? "bg-red-100 text-red-800 border-red-200"
+                              : "bg-emerald-100 text-emerald-800 border-emerald-200")
+                          }
+                        >
                           {x.summary?.damaged || 0}
                         </span>
                       </td>
@@ -609,14 +651,11 @@ export default function App() {
               <div className="p-3 border-b flex items-center justify-between">
                 <div className="font-semibold">Preview — Inspection Report</div>
                 <div className="flex gap-2">
-                  <button
-                    className="px-3 py-2 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-50"
-                    onClick={printPreview}
-                  >
+                  <button className={btnSecondary} onClick={printPreview}>
                     Print / Save PDF
                   </button>
                   <button
-                    className="px-3 py-2 rounded-xl bg-neutral-900 text-white hover:bg-neutral-800"
+                    className={btnPrimary}
                     onClick={() => setPreviewOpen(false)}
                   >
                     Close
@@ -625,47 +664,91 @@ export default function App() {
               </div>
 
               <div className="p-6 overflow-auto max-h-[80vh]">
-                <div className="text-xl font-bold">{profile.org || "ToolStack"}</div>
+                <div className="text-xl font-bold">
+                  {profile.org || "ToolStack"}
+                </div>
                 <div className="text-sm text-neutral-600">Inspection Report</div>
+                <div className="mt-2 h-[2px] w-72 rounded-full bg-gradient-to-r from-lime-400/0 via-lime-400 to-emerald-400/0" />
 
-                <div className="mt-2 text-sm">
-                  <div><span className="text-neutral-600">Prepared by:</span> {profile.user || "-"}</div>
-                  <div><span className="text-neutral-600">Date:</span> {date}</div>
-                  <div><span className="text-neutral-600">Type:</span> {inspectionType}</div>
-                  <div><span className="text-neutral-600">Property:</span> {propertyLabel || "-"}</div>
-                  <div><span className="text-neutral-600">Address:</span> {address || "-"}</div>
-                  <div><span className="text-neutral-600">Occupants:</span> {occupants || "-"}</div>
-                  <div><span className="text-neutral-600">Generated:</span> {new Date().toLocaleString()}</div>
+                <div className="mt-3 text-sm">
+                  <div>
+                    <span className="text-neutral-600">Prepared by:</span>{" "}
+                    {profile.user || "-"}
+                  </div>
+                  <div>
+                    <span className="text-neutral-600">Date:</span> {date}
+                  </div>
+                  <div>
+                    <span className="text-neutral-600">Type:</span>{" "}
+                    {inspectionType}
+                  </div>
+                  <div>
+                    <span className="text-neutral-600">Property:</span>{" "}
+                    {propertyLabel || "-"}
+                  </div>
+                  <div>
+                    <span className="text-neutral-600">Address:</span>{" "}
+                    {address || "-"}
+                  </div>
+                  <div>
+                    <span className="text-neutral-600">Occupants:</span>{" "}
+                    {occupants || "-"}
+                  </div>
+                  <div>
+                    <span className="text-neutral-600">Generated:</span>{" "}
+                    {new Date().toLocaleString()}
+                  </div>
                 </div>
 
                 {notes && (
                   <div className="mt-4 text-sm">
                     <div className="font-semibold">General notes</div>
-                    <div className="text-neutral-700 whitespace-pre-wrap">{notes}</div>
+                    <div className="text-neutral-700 whitespace-pre-wrap">
+                      {notes}
+                    </div>
                   </div>
                 )}
 
                 <div className="mt-4 rounded-2xl border border-neutral-200 p-3 text-sm">
                   <div className="font-semibold">Summary</div>
                   <div className="mt-1 text-neutral-700">
-                    Items: {totals.total} • Damaged: {totals.damaged} • Worn: {totals.worn} • Missing: {totals.missing}
+                    Items: {totals.total} • Damaged: {totals.damaged} • Worn:{" "}
+                    {totals.worn} • Missing: {totals.missing}
                   </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                   {draft.sections.map((s) => (
-                    <div key={s.id} className="rounded-2xl border border-neutral-200 p-3">
+                    <div
+                      key={s.id}
+                      className="rounded-2xl border border-neutral-200 p-3"
+                    >
                       <div className="font-semibold">{s.title}</div>
                       <div className="mt-2 space-y-2">
                         {s.items.map((it) => (
-                          <div key={it.id} className="text-sm flex items-start justify-between gap-3 border-t pt-2 first:border-t-0 first:pt-0">
+                          <div
+                            key={it.id}
+                            className="text-sm flex items-start justify-between gap-3 border-t pt-2 first:border-t-0 first:pt-0"
+                          >
                             <div>
                               <div className="font-medium">{it.label}</div>
-                              {it.note && <div className="text-neutral-600">{it.note}</div>}
-                              {it.evidenceRef && <div className="text-neutral-600">Evidence: {it.evidenceRef}</div>}
+                              {it.note && (
+                                <div className="text-neutral-600">{it.note}</div>
+                              )}
+                              {it.evidenceRef && (
+                                <div className="text-neutral-600">
+                                  Evidence: {it.evidenceRef}
+                                </div>
+                              )}
                             </div>
-                            <span className={"text-xs px-2 py-1 rounded-full border " + badgeClass(it.condition)}>
-                              {CONDITION_OPTIONS.find((o) => o.key === it.condition)?.label || "OK"}
+                            <span
+                              className={
+                                "text-xs px-2 py-1 rounded-full border " +
+                                badgeClass(it.condition)
+                              }
+                            >
+                              {CONDITION_OPTIONS.find((o) => o.key === it.condition)
+                                ?.label || "OK"}
                             </span>
                           </div>
                         ))}
@@ -693,8 +776,14 @@ export default function App() {
           </div>
         )}
 
+        {/* Footer link */}
         <div className="mt-6 text-sm text-neutral-600">
-          <a className="underline hover:text-neutral-900" href={HUB_URL} target="_blank" rel="noreferrer">
+          <a
+            className="underline hover:text-neutral-900"
+            href={HUB_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
             Return to ToolStack hub
           </a>
         </div>
