@@ -1,0 +1,105 @@
+/* ToolStack UI v1 — Grey + Lime accent */
+/* Put this file at: src/toolstack-ui.css */
+
+@layer base {
+  :root {
+    /* Accent */
+    --ts-accent: 132 204 22; /* lime-ish */
+    --ts-accent-2: 16 185 129; /* emerald-ish */
+  }
+
+  /* Print rules (global) */
+  @media print {
+    .ts-no-print { display: none !important; }
+    .ts-print { display: block !important; }
+    body { background: white !important; }
+  }
+}
+
+@layer components {
+  .ts-container { @apply max-w-6xl mx-auto p-4 sm:p-6; }
+
+  .ts-topbar {
+    @apply flex items-start justify-between gap-4;
+  }
+
+  .ts-title { @apply text-2xl font-bold tracking-tight; }
+  .ts-subtitle { @apply text-sm text-neutral-600; }
+
+  .ts-card {
+    @apply bg-white border border-neutral-200 rounded-2xl shadow-sm;
+  }
+  .ts-card-pad { @apply p-4; }
+  .ts-section-title { @apply font-semibold; }
+  .ts-muted { @apply text-neutral-600; }
+
+  .ts-field-label { @apply block text-sm; }
+  .ts-field-help { @apply text-xs text-neutral-500; }
+
+  .ts-input {
+    @apply w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200 bg-white
+           focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300;
+  }
+  .ts-select { @apply ts-input; }
+  .ts-textarea { @apply ts-input min-h-[90px]; }
+
+  .ts-btn {
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl
+           border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50
+           active:translate-y-[1px] transition;
+  }
+
+  .ts-btn-primary {
+    /* Grey base with green edge + subtle glow */
+    @apply border-neutral-800 bg-neutral-900 text-white hover:bg-neutral-800;
+    box-shadow: 0 0 0 1px rgba(var(--ts-accent), 0.25), 0 8px 24px rgba(0,0,0,0.10);
+  }
+
+  .ts-btn-accent {
+    /* White button with lime accent ring */
+    @apply bg-white border-neutral-200 hover:bg-neutral-50;
+    box-shadow: 0 0 0 2px rgba(var(--ts-accent), 0.25);
+  }
+
+  .ts-btn-danger {
+    @apply border-red-200 bg-red-50 text-red-700 hover:bg-red-100;
+  }
+
+  .ts-badge {
+    @apply text-xs px-2 py-1 rounded-full border;
+  }
+  .ts-badge-ok { @apply bg-emerald-100 text-emerald-800 border-emerald-200; }
+  .ts-badge-warn { @apply bg-amber-100 text-amber-800 border-amber-200; }
+  .ts-badge-bad { @apply bg-red-100 text-red-800 border-red-200; }
+  .ts-badge-na { @apply bg-neutral-100 text-neutral-700 border-neutral-200; }
+
+  .ts-table { @apply w-full text-sm; }
+  .ts-thead { @apply text-left text-neutral-600; }
+  .ts-tr { @apply border-b last:border-b-0; }
+  .ts-th { @apply py-2 pr-2; }
+  .ts-td { @apply py-2 pr-2; }
+
+  .ts-modal-overlay {
+    @apply fixed inset-0 bg-black/40 flex items-center justify-center p-3 z-50;
+  }
+  .ts-modal {
+    @apply w-full max-w-5xl bg-white rounded-2xl shadow-xl border border-neutral-200 overflow-hidden;
+  }
+  .ts-modal-head {
+    @apply p-3 border-b flex items-center justify-between;
+  }
+  .ts-modal-body {
+    @apply p-6 overflow-auto max-h-[80vh];
+  }
+
+  .ts-accent-line {
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      rgba(var(--ts-accent), 0.0),
+      rgba(var(--ts-accent), 0.85),
+      rgba(var(--ts-accent-2), 0.85),
+      rgba(var(--ts-accent), 0.0)
+    );
+  }
+}
