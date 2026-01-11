@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 /**
  * ToolStack — Inspect-It — Free inspection checklist
@@ -96,7 +96,7 @@ function ActionButton({ children, onClick, disabled, title }) {
       title={title}
       onClick={onClick}
       disabled={disabled}
-      className={`${ACTION_BASE} bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200`}
+      className={`${ACTION_BASE} bg-white hover:bg-[#D5FF00] text-neutral-700 border-neutral-200`}
     >
       {children}
     </button>
@@ -106,10 +106,10 @@ function ActionButton({ children, onClick, disabled, title }) {
 function SmallButton({ children, onClick, tone = "default", className = "", disabled, title, type = "button" }) {
   const cls =
     tone === "primary"
-      ? "bg-neutral-700 hover:bg-neutral-600 text-white border-neutral-700 shadow-sm"
+      ? "bg-neutral-700 hover:bg-[#D5FF00] hover:text-neutral-800 hover:border-[#D5FF00] text-white border-neutral-700 shadow-sm"
       : tone === "danger"
         ? "bg-red-50 hover:bg-red-100 text-red-700 border-red-200 shadow-sm"
-        : "bg-white hover:bg-neutral-50 text-neutral-800 border-neutral-200 shadow-sm";
+        : "bg-white hover:bg-[#D5FF00] text-neutral-800 border-neutral-200 shadow-sm";
 
   return (
     <button
@@ -128,7 +128,7 @@ function IconButton({ title, onClick, tone = "default", children }) {
   const cls =
     tone === "danger"
       ? "border-red-200 bg-red-50 hover:bg-red-100 text-red-700"
-      : "border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700";
+      : "border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-700";
   return (
     <button
       type="button"
@@ -337,7 +337,7 @@ function DatePicker({ label = "Date", value, onChange }) {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 transition flex items-center justify-between gap-2"
+        className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 transition flex items-center justify-between gap-2"
         title="Choose a date"
       >
         <span className={value ? "font-medium" : "text-neutral-500"}>{display}</span>
@@ -361,7 +361,7 @@ function DatePicker({ label = "Date", value, onChange }) {
               <button
                 type="button"
                 onClick={() => setViewDate((d) => startOfMonth(addMonths(d, -1)))}
-                className="h-9 w-9 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 flex items-center justify-center"
+                className="h-9 w-9 rounded-xl border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center"
                 aria-label="Previous month"
                 title="Previous month"
               >
@@ -375,7 +375,7 @@ function DatePicker({ label = "Date", value, onChange }) {
               <button
                 type="button"
                 onClick={() => setViewDate((d) => startOfMonth(addMonths(d, 1)))}
-                className="h-9 w-9 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 flex items-center justify-center"
+                className="h-9 w-9 rounded-xl border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center"
                 aria-label="Next month"
                 title="Next month"
               >
@@ -403,7 +403,7 @@ function DatePicker({ label = "Date", value, onChange }) {
                   ? "bg-neutral-700 text-white border-neutral-700"
                   : isToday
                     ? "bg-white text-neutral-800 border-[#D5FF00]"
-                    : "bg-white text-neutral-800 border-neutral-200 hover:bg-neutral-50";
+                    : "bg-white text-neutral-800 border-neutral-200 hover:bg-[#D5FF00]";
 
                 const dim = isInMonth ? "" : "opacity-40";
 
@@ -427,7 +427,7 @@ function DatePicker({ label = "Date", value, onChange }) {
             <div className="mt-3 flex items-center justify-between gap-2">
               <button
                 type="button"
-                className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800"
+                className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800"
                 onClick={() => {
                   onChange?.(toISODate(today));
                   setOpen(false);
@@ -438,7 +438,7 @@ function DatePicker({ label = "Date", value, onChange }) {
 
               <button
                 type="button"
-                className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-700 bg-neutral-700 text-white hover:bg-neutral-600"
+                className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-700 bg-neutral-700 text-white hover:bg-[#D5FF00] hover:text-neutral-800 hover:border-[#D5FF00]"
                 onClick={() => setOpen(false)}
               >
                 Close
@@ -448,6 +448,28 @@ function DatePicker({ label = "Date", value, onChange }) {
         </>
       ) : null}
     </div>
+  );
+}
+
+function AutoTextarea({ value, onChange, placeholder, className }) {
+  const ref = useRef(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + 2 + "px";
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      rows={2}
+      className={className}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+    />
   );
 }
 
@@ -475,7 +497,7 @@ function HelpModal({ open, onClose, onReset }) {
           </div>
           <button
             type="button"
-            className="shrink-0 px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 transition"
+            className="shrink-0 px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 transition"
             onClick={onClose}
           >
             Close
@@ -536,12 +558,102 @@ function HelpModal({ open, onClose, onReset }) {
           </button>
           <button
             type="button"
-            className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-700 bg-neutral-700 text-white hover:bg-neutral-600 transition"
+            className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-700 bg-neutral-700 text-white hover:bg-[#D5FF00] hover:text-neutral-800 hover:border-[#D5FF00] transition"
             onClick={onClose}
           >
             Got it
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmModal({ open, onClose, onConfirm, title, message, confirmLabel = "Confirm", isDanger = false }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 print:hidden">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      
+      <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden transform transition-all">
+        <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+          <h3 className="font-semibold text-neutral-800">{title}</h3>
+          <button 
+            type="button"
+            onClick={onClose}
+            className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-[#D5FF00] hover:text-neutral-800 text-neutral-500 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <div className="p-5">
+          <div className="text-sm text-neutral-700">{message}</div>
+
+          <div className="mt-6 flex justify-end gap-3">
+            <SmallButton onClick={onClose}>Cancel</SmallButton>
+            <SmallButton tone={isDanger ? "danger" : "primary"} onClick={onConfirm}>
+              {confirmLabel}
+            </SmallButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, initialValue = "", submitLabel = "Save" }) {
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
+    if (open) setValue(initialValue);
+  }, [open, initialValue]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 print:hidden">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      
+      <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden transform transition-all">
+        <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+          <h3 className="font-semibold text-neutral-800">{title}</h3>
+          <button 
+            type="button"
+            onClick={onClose}
+            className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-[#D5FF00] hover:text-neutral-800 text-neutral-500 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (value.trim()) onSubmit(value.trim());
+          }}
+          className="p-5"
+        >
+          <label className="block">
+            <div className="text-sm font-medium text-neutral-700">{inputLabel}</div>
+            <input
+              autoFocus
+              type="text"
+              className={inputBase}
+              placeholder={placeholder}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
+          </label>
+
+          <div className="mt-6 flex justify-end gap-3">
+            <SmallButton onClick={onClose}>Cancel</SmallButton>
+            <SmallButton tone="primary" type="submit" disabled={!value.trim()}>
+              {submitLabel}
+            </SmallButton>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -695,6 +807,13 @@ export default function App() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [addSectionOpen, setAddSectionOpen] = useState(false);
+  const [addItemState, setAddItemState] = useState({ open: false, sectionId: null });
+  const [renameItemState, setRenameItemState] = useState({ open: false, sectionId: null, itemId: null, initialValue: "" });
+  const [renameSectionState, setRenameSectionState] = useState({ open: false, sectionId: null, initialValue: "" });
+  const [deleteSectionState, setDeleteSectionState] = useState({ open: false, sectionId: null });
+  const [deleteItemState, setDeleteItemState] = useState({ open: false, sectionId: null, itemId: null });
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   const fileRef = useRef(null);
 
@@ -765,9 +884,7 @@ export default function App() {
     setState((prev) => saveState({ ...prev, template: normalizeTemplate(nextTemplate) }));
   }
 
-  function addSection() {
-    const title = window.prompt("Section title?", "New section");
-    if (!title) return;
+  function onAddSectionSubmit(title) {
     const sectionId = uid("s");
     const nextTitle = String(title).trim() || "New section";
 
@@ -779,14 +896,18 @@ export default function App() {
       ...d,
       sections: [...(d.sections || []), { id: sectionId, title: nextTitle, items: [] }],
     }));
+    setAddSectionOpen(false);
   }
 
-  function renameSection(sectionId) {
+  function openRenameSection(sectionId) {
     const current = (draft.sections || []).find((s) => s.id === sectionId)?.title || "";
-    const title = window.prompt("Rename section", current);
-    if (!title) return;
+    setRenameSectionState({ open: true, sectionId, initialValue: current });
+  }
 
-    const nextTitle = String(title).trim() || current;
+  function onRenameSectionSubmit(title) {
+    const { sectionId, initialValue } = renameSectionState;
+    if (!sectionId) return;
+    const nextTitle = String(title).trim() || initialValue || "Section";
 
     const nextTemplate = normalizeTemplate(state.template);
     nextTemplate.sections = (nextTemplate.sections || []).map((s) => (s.id !== sectionId ? s : { ...s, title: nextTitle }));
@@ -796,13 +917,16 @@ export default function App() {
       ...d,
       sections: (d.sections || []).map((s) => (s.id !== sectionId ? s : { ...s, title: nextTitle })),
     }));
+    setRenameSectionState({ open: false, sectionId: null, initialValue: "" });
   }
 
-  function deleteSection(sectionId) {
-    const sTitle = (draft.sections || []).find((s) => s.id === sectionId)?.title || "this section";
-    const ok = window.confirm(`Delete “${sTitle}”? This removes it from the checklist template too.`);
-    if (!ok) return;
+  function openDeleteSection(sectionId) {
+    setDeleteSectionState({ open: true, sectionId });
+  }
 
+  function onDeleteSectionConfirm() {
+    const { sectionId } = deleteSectionState;
+    if (!sectionId) return;
     const nextTemplate = normalizeTemplate(state.template);
     nextTemplate.sections = (nextTemplate.sections || []).filter((s) => s.id !== sectionId);
     setTemplateAndPersist(nextTemplate);
@@ -811,11 +935,16 @@ export default function App() {
       ...d,
       sections: (d.sections || []).filter((s) => s.id !== sectionId),
     }));
+    setDeleteSectionState({ open: false, sectionId: null });
   }
 
-  function addItemToSection(sectionId) {
-    const label = window.prompt("Item label?", "New item");
-    if (!label) return;
+  function openAddItem(sectionId) {
+    setAddItemState({ open: true, sectionId });
+  }
+
+  function onAddItemSubmit(label) {
+    const { sectionId } = addItemState;
+    if (!sectionId) return;
     const itemId = uid("i");
     const nextLabel = String(label).trim() || "New item";
 
@@ -845,11 +974,15 @@ export default function App() {
     }));
   }
 
-  function renameItem(sectionId, itemId) {
-    const current = (draft.sections || []).find((s) => s.id === sectionId)?.items?.find((it) => it.id === itemId)?.label;
-    const label = window.prompt("Rename item", current || "");
-    if (!label) return;
-    const nextLabel = String(label).trim() || current || "Item";
+  function openRenameItem(sectionId, itemId) {
+    const current = (draft.sections || []).find((s) => s.id === sectionId)?.items?.find((it) => it.id === itemId)?.label || "";
+    setRenameItemState({ open: true, sectionId, itemId, initialValue: current });
+  }
+
+  function onRenameItemSubmit(label) {
+    const { sectionId, itemId, initialValue } = renameItemState;
+    if (!sectionId || !itemId) return;
+    const nextLabel = String(label).trim() || initialValue || "Item";
 
     const nextTemplate = normalizeTemplate(state.template);
     nextTemplate.sections = (nextTemplate.sections || []).map((s) =>
@@ -873,13 +1006,16 @@ export default function App() {
             }
       ),
     }));
+    setRenameItemState({ open: false, sectionId: null, itemId: null, initialValue: "" });
   }
 
-  function deleteItem(sectionId, itemId) {
-    const label = (draft.sections || []).find((s) => s.id === sectionId)?.items?.find((it) => it.id === itemId)?.label;
-    const ok = window.confirm(`Delete item “${label || "this item"}”? This removes it from the checklist template too.`);
-    if (!ok) return;
+  function openDeleteItem(sectionId, itemId) {
+    setDeleteItemState({ open: true, sectionId, itemId });
+  }
 
+  function onDeleteItemConfirm() {
+    const { sectionId, itemId } = deleteItemState;
+    if (!sectionId || !itemId) return;
     const nextTemplate = normalizeTemplate(state.template);
     nextTemplate.sections = (nextTemplate.sections || []).map((s) =>
       s.id !== sectionId
@@ -902,6 +1038,7 @@ export default function App() {
             }
       ),
     }));
+    setDeleteItemState({ open: false, sectionId: null, itemId: null });
   }
 
   function resetDraft() {
@@ -1010,9 +1147,11 @@ export default function App() {
     setTimeout(() => window.print(), 60);
   };
 
-  const resetAppData = () => {
-    const ok = window.confirm("Reset Inspect-It data? This clears local storage for this app.");
-    if (!ok) return;
+  const openResetConfirm = () => {
+    setResetConfirmOpen(true);
+  };
+
+  const performReset = () => {
     try {
       localStorage.removeItem(KEY);
     } catch {
@@ -1040,6 +1179,7 @@ export default function App() {
         notes: "",
       })
     );
+    setResetConfirmOpen(false);
   };
 
   // -------- print scoping (print ONLY preview sheet) --------
@@ -1108,12 +1248,85 @@ export default function App() {
     }
   }, []);
 
+  const deleteSectionTitle = useMemo(() => {
+    if (!deleteSectionState.sectionId) return "";
+    return (draft.sections || []).find((s) => s.id === deleteSectionState.sectionId)?.title || "this section";
+  }, [deleteSectionState.sectionId, draft.sections]);
+
+  const deleteItemLabel = useMemo(() => {
+    if (!deleteItemState.sectionId || !deleteItemState.itemId) return "";
+    return (draft.sections || []).find((s) => s.id === deleteItemState.sectionId)?.items?.find((it) => it.id === deleteItemState.itemId)?.label || "this item";
+  }, [deleteItemState.sectionId, deleteItemState.itemId, draft.sections]);
+
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-800">
       <style>{GLOBAL_CSS}</style>
       {previewOpen ? <style>{PRINT_SCOPE_CSS}</style> : null}
 
-      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} onReset={resetAppData} />
+      <InputModal
+        open={addSectionOpen}
+        onClose={() => setAddSectionOpen(false)}
+        onSubmit={onAddSectionSubmit}
+        title="Add Section"
+        inputLabel="Section Title"
+        placeholder="e.g., Garage, Guest Room..."
+        submitLabel="Add Section"
+      />
+      <InputModal
+        open={addItemState.open}
+        onClose={() => setAddItemState({ ...addItemState, open: false })}
+        onSubmit={onAddItemSubmit}
+        title="Add Item"
+        inputLabel="Item Label"
+        placeholder="e.g., Ceiling light, Radiator..."
+        submitLabel="Add Item"
+      />
+      <InputModal
+        open={renameItemState.open}
+        onClose={() => setRenameItemState({ ...renameItemState, open: false })}
+        onSubmit={onRenameItemSubmit}
+        title="Rename Item"
+        inputLabel="Item Label"
+        initialValue={renameItemState.initialValue}
+        submitLabel="Save"
+      />
+      <InputModal
+        open={renameSectionState.open}
+        onClose={() => setRenameSectionState({ ...renameSectionState, open: false })}
+        onSubmit={onRenameSectionSubmit}
+        title="Rename Section"
+        inputLabel="Section Title"
+        initialValue={renameSectionState.initialValue}
+        submitLabel="Save"
+      />
+      <ConfirmModal
+        open={deleteSectionState.open}
+        onClose={() => setDeleteSectionState({ ...deleteSectionState, open: false })}
+        onConfirm={onDeleteSectionConfirm}
+        title="Delete Section"
+        message={`Delete “${deleteSectionTitle}”? This removes it from the checklist template too.`}
+        confirmLabel="Delete"
+        isDanger
+      />
+      <ConfirmModal
+        open={deleteItemState.open}
+        onClose={() => setDeleteItemState({ ...deleteItemState, open: false })}
+        onConfirm={onDeleteItemConfirm}
+        title="Delete Item"
+        message={`Delete item “${deleteItemLabel}”? This removes it from the checklist template too.`}
+        confirmLabel="Delete"
+        isDanger
+      />
+      <ConfirmModal
+        open={resetConfirmOpen}
+        onClose={() => setResetConfirmOpen(false)}
+        onConfirm={performReset}
+        title="Reset App Data"
+        message="Reset Inspect-It data? This clears local storage for this app."
+        confirmLabel="Reset"
+        isDanger
+      />
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} onReset={openResetConfirm} />
 
       {/* Hidden import input */}
       <input
@@ -1165,7 +1378,7 @@ export default function App() {
                 type="button"
                 title="Help"
                 onClick={() => setHelpOpen(true)}
-                className="print:hidden absolute right-0 top-0 h-10 w-10 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 shadow-sm flex items-center justify-center font-bold text-neutral-800"
+                className="print:hidden absolute right-0 top-0 h-10 w-10 rounded-xl border border-neutral-200 bg-white hover:bg-[#D5FF00] shadow-sm flex items-center justify-center font-bold text-neutral-800"
                 aria-label="Help"
               >
                 ?
@@ -1187,7 +1400,7 @@ export default function App() {
                     className={inputBase}
                     value={profile.org}
                     onChange={(e) => setProfile({ ...profile, org: e.target.value })}
-                    placeholder="e.g., Smith Household"
+                    placeholder=""
                   />
                 </label>
                 <label className="block text-sm">
@@ -1268,7 +1481,7 @@ export default function App() {
                   <span className="font-semibold text-neutral-800">Checklist</span>
                   <span className="text-neutral-600"> • Add sections/items if your home has extras (basement, guest bathroom, etc.)</span>
                 </div>
-                <SmallButton tone="primary" onClick={addSection}>
+                <SmallButton tone="primary" onClick={() => setAddSectionOpen(true)}>
                   + Add section
                 </SmallButton>
               </div>
@@ -1283,13 +1496,13 @@ export default function App() {
                         <div className="text-xs text-neutral-600">{(s.items || []).length} items</div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <SmallButton onClick={() => addItemToSection(s.id)} className="px-2 py-1.5" tone="primary">
+                        <SmallButton onClick={() => openAddItem(s.id)} className="px-2 py-1.5" tone="primary">
                           + Item
                         </SmallButton>
-                        <IconButton title="Rename section" onClick={() => renameSection(s.id)}>
+                        <IconButton title="Rename section" onClick={() => openRenameSection(s.id)}>
                           ✎
                         </IconButton>
-                        <IconButton title="Delete section" tone="danger" onClick={() => deleteSection(s.id)}>
+                        <IconButton title="Delete section" tone="danger" onClick={() => openDeleteSection(s.id)}>
                           🗑
                         </IconButton>
                       </div>
@@ -1308,8 +1521,8 @@ export default function App() {
                               <div className="mt-2 flex items-center gap-2 print:hidden">
                                 <button
                                   type="button"
-                                  className="text-xs px-2 py-1 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700"
-                                  onClick={() => renameItem(s.id, it.id)}
+                                  className="text-xs px-2 py-1 rounded-lg border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-700"
+                                  onClick={() => openRenameItem(s.id, it.id)}
                                   title="Rename item"
                                 >
                                   Rename
@@ -1317,7 +1530,7 @@ export default function App() {
                                 <button
                                   type="button"
                                   className="text-xs px-2 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-700"
-                                  onClick={() => deleteItem(s.id, it.id)}
+                                  onClick={() => openDeleteItem(s.id, it.id)}
                                   title="Delete item"
                                 >
                                   Delete
@@ -1346,8 +1559,8 @@ export default function App() {
 
                           {/* Wider note + wrap, evidence under */}
                           <div className="mt-3 space-y-2">
-                            <textarea
-                              className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25 min-h-[104px] resize-y whitespace-pre-wrap"
+                            <AutoTextarea
+                              className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25 resize-none overflow-hidden whitespace-pre-wrap"
                               placeholder="Note (what you see)"
                               value={it.note}
                               onChange={(e) => updateItem(s.id, it.id, { note: e.target.value })}
@@ -1418,7 +1631,7 @@ export default function App() {
                         <td className="py-2 pr-2">{x.summary?.missing || 0}</td>
                         <td className="py-2 pr-2 text-right">
                           <button
-                            className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-800"
+                            className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200 hover:bg-[#D5FF00] text-neutral-800"
                             onClick={() => deleteInspection(x.id)}
                           >
                             Delete
@@ -1444,14 +1657,14 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 transition"
+                    className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 transition"
                     onClick={() => window.print()}
                   >
                     Print / Save PDF
                   </button>
                   <button
                     type="button"
-                    className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-700 bg-neutral-700 text-white hover:bg-neutral-600 transition"
+                    className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-700 bg-neutral-700 text-white hover:bg-[#D5FF00] hover:text-neutral-800 hover:border-[#D5FF00] transition"
                     onClick={() => setPreviewOpen(false)}
                   >
                     Close
