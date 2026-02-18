@@ -1,5 +1,9 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
+import hubIcon from "./assets/hub_tag.png";
+import previewIcon from "./assets/preview_tag.png";
+import exportIcon from "./assets/export_tag.png";
+
 /**
  * ToolStack — Inspect-It — Free inspection checklist
  * Paste into: src/App.jsx
@@ -659,6 +663,67 @@ function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, i
   );
 }
 
+function ImportExportModal({ open, onClose, onImport, onExport }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 sm:p-8 print:hidden">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="relative w-full max-w-lg max-h-[90vh] rounded-2xl bg-white border border-neutral-200 shadow-xl overflow-hidden flex flex-col"
+      >
+        <div className="sticky top-0 z-10 bg-white p-4 border-b border-neutral-100 flex items-start justify-between gap-4">
+          <div>
+            <div className="text-lg font-semibold text-neutral-800">Import / Export Data</div>
+            <div className="text-sm text-neutral-700 mt-1">Save or load your checklist data.</div>
+            <div className="mt-3 h-[2px] w-56 rounded-full bg-gradient-to-r from-[#D5FF00]/0 via-[#D5FF00] to-[#D5FF00]/0" />
+          </div>
+          <button
+            type="button"
+            className="shrink-0 px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 transition"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="p-4 space-y-4 text-sm text-neutral-700 overflow-auto min-h-0">
+          <div className="rounded-2xl border border-neutral-200 p-4">
+            <div className="font-semibold text-neutral-800">Export</div>
+            <div className="mt-1">
+              Export all your data (profile, template, and saved inspections) into a single JSON file. Keep this file as a backup.
+            </div>
+            <div className="mt-4">
+              <SmallButton tone="primary" onClick={onExport}>
+                Export to JSON
+              </SmallButton>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-neutral-200 p-4">
+            <div className="font-semibold text-neutral-800">Import</div>
+            <div className="mt-1">
+              Import data from a previously exported JSON file. This will overwrite your current data.
+            </div>
+            <div className="mt-4">
+              <SmallButton onClick={onImport}>Import from JSON</SmallButton>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 border-t border-neutral-100 flex items-center justify-end gap-2">
+          <SmallButton tone="primary" onClick={onClose}>
+            Done
+          </SmallButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------------------------
 // data model
 // ---------------------------
@@ -814,6 +879,7 @@ export default function App() {
   const [deleteSectionState, setDeleteSectionState] = useState({ open: false, sectionId: null });
   const [deleteItemState, setDeleteItemState] = useState({ open: false, sectionId: null, itemId: null });
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [importExportOpen, setImportExportOpen] = useState(false);
 
   const fileRef = useRef(null);
 
@@ -1263,6 +1329,18 @@ export default function App() {
       <style>{GLOBAL_CSS}</style>
       {previewOpen ? <style>{PRINT_SCOPE_CSS}</style> : null}
 
+      <ImportExportModal
+        open={importExportOpen}
+        onClose={() => setImportExportOpen(false)}
+        onExport={() => {
+          exportJSON();
+          setImportExportOpen(false);
+        }}
+        onImport={() => {
+          onImportPick();
+          setImportExportOpen(false);
+        }}
+      />
       <InputModal
         open={addSectionOpen}
         onClose={() => setAddSectionOpen(false)}
@@ -1344,34 +1422,48 @@ export default function App() {
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="text-4xl sm:text-5xl font-black tracking-tight text-neutral-700">
-              <span>Inspect</span>
-              <span className="text-[#D5FF00]">It</span>
+            <div className="flex justify-center items-center mb-6">
+              <img
+                src="/inspectit-heading.png"
+                alt="Inspect-It"
+                className="w-full max-w-xl h-auto select-none"
+              />
             </div>
             <div className="text-sm text-neutral-700">Organised inspection checklist for your new flat or home</div>
             <div className="mt-3 h-[2px] w-80 rounded-full bg-gradient-to-r from-[#D5FF00]/0 via-[#D5FF00] to-[#D5FF00]/0" />
-
-            {HUB_URL && HUB_URL !== "https://YOUR-WIX-HUB-URL-HERE" ? (
-              <a
-                className="mt-3 inline-block text-sm font-semibold text-neutral-800 underline"
-                href={HUB_URL}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Return to ToolStack hub
-              </a>
-            ) : null}
           </div>
 
           {/* Normalized top actions grid + pinned help */}
           <div className="w-full sm:w-[680px]">
             <div className="relative">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 pr-12">
-                <ActionButton onClick={openPreview}>Preview</ActionButton>
-                <ActionButton onClick={printFromPreview}>Print / Save PDF</ActionButton>
-                <ActionButton onClick={exportJSON}>Export</ActionButton>
-                <ActionButton onClick={onImportPick}>Import</ActionButton>
-                <ActionButton onClick={() => setHelpOpen(true)}>Help</ActionButton>
+              <div className="grid grid-cols-3 gap-4 items-center pr-12">
+                <a
+                  href={HUB_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="ToolStack Hub"
+                  className={`${(!HUB_URL || HUB_URL === "https://YOUR-WIX-HUB-URL-HERE") && "pointer-events-none opacity-50"}`}
+                >
+                  <img
+                    src={hubIcon}
+                    alt="Hub"
+                    className="h-16 w-auto hover:scale-105 transition-transform duration-200"
+                  />
+                </a>
+                <button type="button" onClick={openPreview} title="Preview">
+                  <img
+                    src={previewIcon}
+                    alt="Preview"
+                    className="h-16 w-auto hover:scale-105 transition-transform duration-200"
+                  />
+                </button>
+                <button type="button" onClick={() => setImportExportOpen(true)} title="Import / Export">
+                  <img
+                    src={exportIcon}
+                    alt="Export"
+                    className="h-16 w-auto hover:scale-105 transition-transform duration-200"
+                  />
+                </button>
               </div>
 
               <button
