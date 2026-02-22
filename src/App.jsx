@@ -3,6 +3,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "re
 import hubIcon from "./assets/hub_tag.png";
 import previewIcon from "./assets/preview_tag.png";
 import exportIcon from "./assets/export_tag.png";
+import headingImage from "./assets/inspectit-heading.png";
 
 /**
  * ToolStack — Inspect-It — Free inspection checklist
@@ -85,9 +86,9 @@ const lsSet = (k, v) => {
 // ---------------------------
 
 const inputBase =
-  "w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25 focus:border-neutral-300";
+  "w-full mt-1 px-3 py-2 rounded-xl border-2 border-neutral-900 bg-white focus:outline-none focus:bg-[#D5FF00]/10 transition-colors font-medium";
 
-const card = "rounded-2xl bg-white border border-neutral-200 shadow-sm";
+const card = "rounded-2xl bg-white border-2 border-neutral-900 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]";
 const cardPad = "p-4";
 
 const ACTION_BASE =
@@ -110,10 +111,10 @@ function ActionButton({ children, onClick, disabled, title }) {
 function SmallButton({ children, onClick, tone = "default", className = "", disabled, title, type = "button" }) {
   const cls =
     tone === "primary"
-      ? "bg-neutral-700 hover:bg-[#D5FF00] hover:text-neutral-800 hover:border-[#D5FF00] text-white border-neutral-700 shadow-sm"
+      ? "bg-neutral-900 text-[#D5FF00] border-neutral-900 hover:bg-neutral-800"
       : tone === "danger"
-        ? "bg-red-50 hover:bg-red-100 text-red-700 border-red-200 shadow-sm"
-        : "bg-white hover:bg-[#D5FF00] text-neutral-800 border-neutral-200 shadow-sm";
+        ? "bg-red-100 text-red-900 border-neutral-900 hover:bg-red-200"
+        : "bg-white text-neutral-900 border-neutral-900 hover:bg-[#D5FF00]";
 
   return (
     <button
@@ -121,7 +122,7 @@ function SmallButton({ children, onClick, tone = "default", className = "", disa
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`print:hidden px-3 py-2 rounded-xl text-sm font-medium border transition active:translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed ${cls} ${className}`}
+      className={`print:hidden px-4 py-2 rounded-xl text-sm font-bold border-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${cls} ${className}`}
     >
       {children}
     </button>
@@ -131,14 +132,14 @@ function SmallButton({ children, onClick, tone = "default", className = "", disa
 function IconButton({ title, onClick, tone = "default", children }) {
   const cls =
     tone === "danger"
-      ? "border-red-200 bg-red-50 hover:bg-red-100 text-red-700"
-      : "border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-700";
+      ? "bg-red-100 text-red-900 hover:bg-red-200"
+      : "bg-white text-neutral-900 hover:bg-[#D5FF00]";
   return (
     <button
       type="button"
       title={title}
       onClick={onClick}
-      className={`print:hidden h-9 w-9 rounded-xl border shadow-sm flex items-center justify-center transition active:translate-y-[1px] ${cls}`}
+      className={`print:hidden h-10 w-10 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:shadow-none transition-all flex items-center justify-center font-bold ${cls}`}
       aria-label={title}
     >
       {children}
@@ -166,24 +167,6 @@ function clamp(n, min, max) {
 // ---------------------------
 // Trip-It style date picker (custom mini calendar)
 // ---------------------------
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-// Monday-first (DE-friendly)
-const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function pad2(n) {
   return String(n).padStart(2, "0");
@@ -262,7 +245,7 @@ function buildMonthGrid(viewDate) {
   return grid;
 }
 
-function DatePicker({ label = "Date", value, onChange }) {
+function DatePicker({ label = "Date", value, onChange, language = "en" }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
@@ -333,6 +316,18 @@ function DatePicker({ label = "Date", value, onChange }) {
 
   const inViewMonth = (dt) => dt.getMonth() === viewDate.getMonth() && dt.getFullYear() === viewDate.getFullYear();
 
+  const monthNames = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleString(language, { month: 'long' }));
+  }, [language]);
+
+  const dowNames = useMemo(() => {
+    // Jan 4 2021 was a Monday
+    return Array.from({ length: 7 }, (_, i) => new Date(2021, 0, 4 + i).toLocaleString(language, { weekday: 'short' }));
+  }, [language]);
+
+  const t_today = language === "de" ? "Heute" : "Today";
+  const t_close = language === "de" ? "Schließen" : "Close";
+
   return (
     <div className="text-sm">
       <div className="text-neutral-600 font-medium">{label}</div>
@@ -341,7 +336,7 @@ function DatePicker({ label = "Date", value, onChange }) {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full mt-1 px-3 py-2 rounded-xl border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 transition flex items-center justify-between gap-2"
+        className="w-full mt-1 px-3 py-2 rounded-xl border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-800 transition flex items-center justify-between gap-2 font-medium"
         title="Choose a date"
       >
         <span className={value ? "font-medium" : "text-neutral-500"}>{display}</span>
@@ -359,13 +354,14 @@ function DatePicker({ label = "Date", value, onChange }) {
 
           <div
             className="fixed z-50 rounded-2xl bg-white border border-neutral-200 shadow-xl p-3"
-            style={{ top: pos.top, left: pos.left, width: 360 }}
+            className="fixed z-50 rounded-2xl bg-white border-2 border-neutral-900 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] p-4"
+            style={{ top: pos.top, left: pos.left, width: 340 }}
           >
             <div className="flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => setViewDate((d) => startOfMonth(addMonths(d, -1)))}
-                className="h-9 w-9 rounded-xl border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center"
+                className="h-9 w-9 rounded-xl border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px] transition-all"
                 aria-label="Previous month"
                 title="Previous month"
               >
@@ -373,13 +369,13 @@ function DatePicker({ label = "Date", value, onChange }) {
               </button>
 
               <div className="text-sm font-semibold text-neutral-800">
-                {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
+                {monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}
               </div>
 
               <button
                 type="button"
                 onClick={() => setViewDate((d) => startOfMonth(addMonths(d, 1)))}
-                className="h-9 w-9 rounded-xl border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center"
+                className="h-9 w-9 rounded-xl border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px] transition-all"
                 aria-label="Next month"
                 title="Next month"
               >
@@ -388,7 +384,7 @@ function DatePicker({ label = "Date", value, onChange }) {
             </div>
 
             <div className="mt-3 grid grid-cols-7 gap-1 text-xs text-neutral-600">
-              {DOW.map((d) => (
+              {dowNames.map((d) => (
                 <div key={d} className="text-center font-semibold">
                   {d}
                 </div>
@@ -401,13 +397,13 @@ function DatePicker({ label = "Date", value, onChange }) {
                 const isSelected = selected ? sameDay(dt, selected) : false;
                 const isInMonth = inViewMonth(dt);
 
-                const base = "h-9 rounded-xl text-sm flex items-center justify-center border transition select-none";
+                const base = "h-9 rounded-xl text-sm font-bold flex items-center justify-center border-2 transition select-none";
 
                 const cls = isSelected
-                  ? "bg-neutral-700 text-white border-neutral-700"
+                  ? "bg-neutral-900 text-[#D5FF00] border-neutral-900"
                   : isToday
-                    ? "bg-white text-neutral-800 border-[#D5FF00]"
-                    : "bg-white text-neutral-800 border-neutral-200 hover:bg-[#D5FF00]";
+                    ? "bg-white text-neutral-900 border-[#D5FF00] shadow-[2px_2px_0px_0px_rgba(213,255,0,1)]"
+                    : "bg-white text-neutral-900 border-neutral-900 hover:bg-[#D5FF00]";
 
                 const dim = isInMonth ? "" : "opacity-40";
 
@@ -431,21 +427,21 @@ function DatePicker({ label = "Date", value, onChange }) {
             <div className="mt-3 flex items-center justify-between gap-2">
               <button
                 type="button"
-                className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800"
+                className="px-3 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-900"
                 onClick={() => {
                   onChange?.(toISODate(today));
                   setOpen(false);
                 }}
               >
-                Today
+                {t_today}
               </button>
 
               <button
                 type="button"
-                className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-700 bg-neutral-700 text-white hover:bg-[#D5FF00] hover:text-neutral-800 hover:border-[#D5FF00]"
+                className="px-3 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] hover:bg-neutral-800"
                 onClick={() => setOpen(false)}
               >
-                Close
+                {t_close}
               </button>
             </div>
           </div>
@@ -469,7 +465,7 @@ function AutoTextarea({ value, onChange, placeholder, className }) {
     <textarea
       ref={ref}
       rows={2}
-      className={className}
+      className={`${className} font-medium`}
       placeholder={placeholder}
       value={value}
       onChange={onChange}
@@ -481,91 +477,282 @@ function AutoTextarea({ value, onChange, placeholder, className }) {
 // Help Pack v1 (ToolStack standard)
 // ---------------------------
 
-function HelpModal({ open, onClose, onReset }) {
+const TRANSLATIONS = {
+  en: {
+    profile: "Profile",
+    household: "Household / Name",
+    preparedBy: "Prepared by",
+    newInspection: "New inspection",
+    items: "Items",
+    damaged: "Damaged",
+    worn: "Worn",
+    missing: "Missing",
+    date: "Date",
+    type: "Type",
+    propertyLabel: "Property label",
+    occupants: "Occupant(s)",
+    address: "Address",
+    generalNotes: "General notes",
+    checklist: "Checklist",
+    addSection: "Add section",
+    savedInspections: "Saved inspections",
+    noSavedInspections: "No saved inspections yet.",
+    action: "Action",
+    delete: "Delete",
+    printSavePdf: "Print / Save PDF",
+    printPreview: "Print Preview",
+    checkIt: "Check it before you ink it!",
+    generated: "Generated",
+    inspection: "Inspection",
+    property: "Property",
+    label: "Label",
+    summary: "Summary",
+    tenant: "Tenant",
+    landlord: "Landlord / Agent",
+    signature: "Signature",
+    storageKeys: "Storage keys",
+    helpInfo: "Help & Info",
+    keepSafe: "Keep your data safe & sound!",
+    localStorageMagic: "Local Storage Magic",
+    localStorageDesc: "Inspect-It saves automatically in your browser. If you clear cookies or switch devices, your data won't follow you!",
+    dontLoseStuff: "Don't Lose Your Stuff",
+    export: "Export",
+    import: "Import",
+    printingPdf: "Printing / PDF",
+    privacy: "Privacy",
+    resetData: "Reset Data",
+    gotIt: "Got it!",
+    importExport: "Import / Export",
+    saveLoadData: "Save or load your checklist data.",
+    exportToFile: "Export to File",
+    exportDesc: "Export all your data (profile, template, and saved inspections) into a single JSON file. Keep this file as a backup.",
+    exportJson: "Export to JSON",
+    importFromFile: "Import from File",
+    importDesc: "Import data from a previously exported JSON file. This will overwrite your current data.",
+    importJson: "Import from JSON",
+    done: "Done",
+    addSectionTitle: "Add Section",
+    sectionTitle: "Section Title",
+    addItemTitle: "Add Item",
+    itemLabel: "Item Label",
+    renameItemTitle: "Rename Item",
+    renameSectionTitle: "Rename Section",
+    deleteSectionTitle: "Delete Section",
+    deleteItemTitle: "Delete Item",
+    resetAppData: "Reset App Data",
+    resetDesc: "Reset Inspect-It data? This clears local storage for this app.",
+    reset: "Reset",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    save: "Save",
+    saveInspection: "Save inspection",
+    checklistHint: "• Add sections/items if your home has extras (basement, guest bathroom, etc.)",
+    contextHint: "Context: keys received, meter readings, agreements, etc.",
+    selectDate: "Select date",
+    moveIn: "Move-in",
+    moveOut: "Move-out",
+    periodic: "Periodic",
+    condition_ok: "OK",
+    condition_worn: "Worn",
+    condition_damaged: "Damaged",
+    condition_missing: "Missing",
+    condition_na: "N/A",
+    rename: "Rename",
+    evidenceRef: "Evidence ref (photo # / file / email)",
+    notePlaceholder: "Note (what you see)",
+    printingPdfDesc: 'Hit Preview then Print. Choose "Save as PDF" to keep a digital copy.',
+    privacyDesc: "No servers, no accounts. Your data lives right here in your browser.",
+    continuityDesc1: "Use Export regularly to create a JSON backup.",
+    continuityDesc2: "Save that file somewhere safe (Cloud, USB, Email).",
+    continuityDesc3: "Use Import to restore on new devices."
+  },
+  de: {
+    profile: "Profil",
+    household: "Haushalt / Name",
+    preparedBy: "Erstellt von",
+    newInspection: "Neue Inspektion",
+    items: "Elemente",
+    damaged: "Beschädigt",
+    worn: "Abgenutzt",
+    missing: "Fehlend",
+    date: "Datum",
+    type: "Typ",
+    propertyLabel: "Objektbezeichnung",
+    occupants: "Bewohner",
+    address: "Adresse",
+    generalNotes: "Allgemeine Notizen",
+    checklist: "Checkliste",
+    addSection: "Abschnitt hinzufügen",
+    savedInspections: "Gespeicherte Inspektionen",
+    noSavedInspections: "Noch keine gespeicherten Inspektionen.",
+    action: "Aktion",
+    delete: "Löschen",
+    printSavePdf: "Drucken / PDF speichern",
+    printPreview: "Druckvorschau",
+    checkIt: "Überprüfen Sie es, bevor Sie es drucken!",
+    generated: "Erstellt",
+    inspection: "Inspektion",
+    property: "Immobilie",
+    label: "Bezeichnung",
+    summary: "Zusammenfassung",
+    tenant: "Mieter",
+    landlord: "Vermieter / Makler",
+    signature: "Unterschrift",
+    storageKeys: "Speicherschlüssel",
+    helpInfo: "Hilfe & Info",
+    keepSafe: "Halten Sie Ihre Daten sicher!",
+    localStorageMagic: "Lokaler Speicher",
+    localStorageDesc: "Inspect-It speichert automatisch in Ihrem Browser. Wenn Sie Cookies löschen oder das Gerät wechseln, folgen Ihre Daten nicht!",
+    dontLoseStuff: "Verlieren Sie Ihre Daten nicht",
+    export: "Exportieren",
+    import: "Importieren",
+    printingPdf: "Drucken / PDF",
+    privacy: "Datenschutz",
+    resetData: "Daten zurücksetzen",
+    gotIt: "Verstanden!",
+    importExport: "Import / Export",
+    saveLoadData: "Speichern oder laden Sie Ihre Checklistendaten.",
+    exportToFile: "In Datei exportieren",
+    exportDesc: "Exportieren Sie alle Ihre Daten (Profil, Vorlage und gespeicherte Inspektionen) in eine einzige JSON-Datei. Bewahren Sie diese Datei als Backup auf.",
+    exportJson: "Als JSON exportieren",
+    importFromFile: "Aus Datei importieren",
+    importDesc: "Importieren Sie Daten aus einer zuvor exportierten JSON-Datei. Dies überschreibt Ihre aktuellen Daten.",
+    importJson: "Aus JSON importieren",
+    done: "Fertig",
+    addSectionTitle: "Abschnitt hinzufügen",
+    sectionTitle: "Abschnittstitel",
+    addItemTitle: "Element hinzufügen",
+    itemLabel: "Elementbezeichnung",
+    renameItemTitle: "Element umbenennen",
+    renameSectionTitle: "Abschnitt umbenennen",
+    deleteSectionTitle: "Abschnitt löschen",
+    deleteItemTitle: "Element löschen",
+    resetAppData: "App-Daten zurücksetzen",
+    resetDesc: "Inspect-It-Daten zurücksetzen? Dies löscht den lokalen Speicher für diese App.",
+    reset: "Zurücksetzen",
+    cancel: "Abbrechen",
+    confirm: "Bestätigen",
+    save: "Speichern",
+    saveInspection: "Inspektion speichern",
+    checklistHint: "• Fügen Sie Abschnitte/Elemente hinzu, wenn Ihr Zuhause Extras hat (Keller, Gästebad usw.)",
+    contextHint: "Kontext: Schlüsselübergabe, Zählerstände, Vereinbarungen usw.",
+    selectDate: "Datum wählen",
+    moveIn: "Einzug",
+    moveOut: "Auszug",
+    periodic: "Periodisch",
+    condition_ok: "OK",
+    condition_worn: "Abgenutzt",
+    condition_damaged: "Beschädigt",
+    condition_missing: "Fehlend",
+    condition_na: "N/A",
+    rename: "Umbenennen",
+    evidenceRef: "Beweisreferenz (Foto Nr. / Datei / E-Mail)",
+    notePlaceholder: "Notiz (was Sie sehen)",
+    printingPdfDesc: 'Klicken Sie auf Vorschau und dann auf Drucken. Wählen Sie "Als PDF speichern", um eine digitale Kopie zu behalten.',
+    privacyDesc: "Keine Server, keine Konten. Ihre Daten bleiben direkt hier in Ihrem Browser.",
+    continuityDesc1: "Nutzen Sie regelmäßig Export, um ein JSON-Backup zu erstellen.",
+    continuityDesc2: "Speichern Sie die Datei sicher (Cloud, USB, E-Mail).",
+    continuityDesc3: "Nutzen Sie Import, um Daten auf neuen Geräten wiederherzustellen."
+  }
+};
+
+function HelpModal({ open, onClose, onReset, language = "en" }) {
   if (!open) return null;
+  const t = (key) => TRANSLATIONS[language]?.[key] || TRANSLATIONS["en"][key] || key;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 sm:p-8 print:hidden">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:hidden">
+      <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-2xl max-h-[90vh] rounded-2xl bg-white border border-neutral-200 shadow-xl overflow-hidden flex flex-col"
+        className="relative w-full max-w-2xl max-h-[85vh] bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col"
       >
-        <div className="sticky top-0 z-10 bg-white p-4 border-b border-neutral-100 flex items-start justify-between gap-4">
+        {/* Funky Header */}
+        <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4">
           <div>
-            <div className="text-lg font-semibold text-neutral-800">Help</div>
-            <div className="text-sm text-neutral-700 mt-1">How your data is saved + how to keep continuity.</div>
-            <div className="mt-3 h-[2px] w-56 rounded-full bg-gradient-to-r from-[#D5FF00]/0 via-[#D5FF00] to-[#D5FF00]/0" />
+            <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase transform -rotate-1">
+              {t("helpInfo")}
+            </h2>
+            <p className="text-neutral-900 font-bold mt-1 text-sm">
+              {t("keepSafe")}
+            </p>
           </div>
           <button
             type="button"
-            className="shrink-0 px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 transition"
+            className="h-10 w-10 rounded-xl bg-white border-2 border-neutral-900 hover:bg-neutral-900 hover:text-[#D5FF00] flex items-center justify-center font-black text-xl transition-all active:translate-y-1"
             onClick={onClose}
           >
-            Close
+            ✕
           </button>
         </div>
 
-        <div className="p-4 space-y-4 text-sm text-neutral-700 overflow-auto min-h-0">
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="font-semibold text-neutral-800">Autosave (default)</div>
-            <div className="mt-1">
-              Inspect-It saves automatically in your browser (localStorage) under:
-              <div className="mt-2 flex flex-wrap gap-2">
-                <span className="font-mono text-xs bg-neutral-50 border border-neutral-200 rounded-lg px-2 py-1">{KEY}</span>
-                <span className="font-mono text-xs bg-neutral-50 border border-neutral-200 rounded-lg px-2 py-1">{PROFILE_KEY}</span>
-              </div>
+        {/* Content */}
+        <div className="p-6 overflow-y-auto space-y-6 bg-white">
+          
+          {/* Autosave Card */}
+          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-[#D5FF00]/10 transition-colors">
+            <div className="absolute -top-3 -left-3 bg-neutral-900 text-white text-xs font-bold px-3 py-1 rounded-full transform -rotate-3 group-hover:rotate-0 transition-transform">
+              AUTOSAVE
             </div>
-            <div className="text-xs text-neutral-600 mt-2">
-              If you clear browser data or switch devices/browsers, your local data won’t follow automatically.
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("localStorageMagic")}</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed">
+              {t("localStorageDesc")}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+               <span className="font-mono text-[10px] bg-white border border-neutral-300 rounded px-2 py-1 text-neutral-500">{KEY}</span>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="font-semibold text-neutral-800">Best practice (continuity)</div>
-            <ul className="mt-2 space-y-2 list-disc pl-5">
-              <li>
-                Use <span className="font-semibold">Export</span> once a week (or after big updates) to create a backup JSON file.
-              </li>
-              <li>Store that JSON in a safe place (Google Drive / iCloud / email to yourself / USB).</li>
-              <li>
-                On a new device/browser, use <span className="font-semibold">Import</span> to restore everything.
-              </li>
+          {/* Continuity Card */}
+          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-cyan-50 transition-colors">
+             <div className="absolute -top-3 -right-3 bg-cyan-400 text-neutral-900 border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform rotate-2 group-hover:rotate-0 transition-transform">
+              IMPORTANT
+            </div>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("dontLoseStuff")}</h3>
+            <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside marker:text-neutral-900">
+              <li><span className="font-black bg-yellow-200 px-1">{t("export")}</span> {t("continuityDesc1").replace("Export", "")}</li>
+              <li>{t("continuityDesc2")}</li>
+              <li><span className="font-black bg-green-200 px-1">{t("import")}</span> {t("continuityDesc3").replace("Import", "")}</li>
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="font-semibold text-neutral-800">Printing / PDF</div>
-            <div className="mt-1">
-              Use <span className="font-semibold">Preview</span> to check the layout, then <span className="font-semibold">Print / Save PDF</span> and choose “Save as PDF”.
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+             {/* PDF Card */}
+            <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-4">
+              <h3 className="font-bold text-neutral-900 mb-1">{t("printingPdf")}</h3>
+              <p className="text-xs text-neutral-600">
+                {t("printingPdfDesc")}
+              </p>
             </div>
-            <div className="text-xs text-neutral-600 mt-2">When Preview is open, printing will include only the preview sheet.</div>
+
+             {/* Privacy Card */}
+            <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-4">
+              <h3 className="font-bold text-neutral-900 mb-1">{t("privacy")}</h3>
+              <p className="text-xs text-neutral-600">
+                {t("privacyDesc")}
+              </p>
+            </div>
           </div>
 
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="font-semibold text-neutral-800">Privacy</div>
-            <div className="mt-1">Inspect-It runs in your browser. There’s no account system here yet, and nothing is uploaded unless you choose to share your exported file.</div>
-          </div>
-
-          <div className="text-xs text-neutral-600">Tip: Export once a week (or after big updates) so you always have a clean backup.</div>
         </div>
 
-        <div className="p-4 border-t border-neutral-100 flex items-center justify-between gap-2">
+        {/* Footer */}
+        <div className="p-4 border-t-4 border-neutral-900 bg-neutral-100 flex items-center justify-between gap-4">
           <button
             type="button"
-            className="px-3 py-2 rounded-xl text-sm font-medium border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 transition"
+            className="px-4 py-2 rounded-xl text-sm font-bold border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-500 transition-colors"
             onClick={onReset}
           >
-            Reset app data
+            {t("resetData")}
           </button>
           <button
             type="button"
-            className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-700 bg-neutral-700 text-white hover:bg-[#D5FF00] hover:text-neutral-800 hover:border-[#D5FF00] transition"
+            className="px-6 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[4px] active:shadow-none transition-all"
             onClick={onClose}
           >
-            Got it
+            {t("gotIt")}
           </button>
         </div>
       </div>
@@ -573,20 +760,21 @@ function HelpModal({ open, onClose, onReset }) {
   );
 }
 
-function ConfirmModal({ open, onClose, onConfirm, title, message, confirmLabel = "Confirm", isDanger = false }) {
+function ConfirmModal({ open, onClose, onConfirm, title, message, confirmLabel = "Confirm", isDanger = false, language = "en" }) {
   if (!open) return null;
+  const t = (key) => TRANSLATIONS[language]?.[key] || TRANSLATIONS["en"][key] || key;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 print:hidden">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
       
-      <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden transform transition-all">
-        <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
-          <h3 className="font-semibold text-neutral-800">{title}</h3>
+      <div className="relative w-full max-w-sm bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden transform transition-all">
+        <div className="px-5 py-4 border-b-4 border-neutral-900 flex items-center justify-between bg-[#D5FF00]">
+          <h3 className="font-black text-xl text-neutral-900 uppercase tracking-tight transform -rotate-1">{title}</h3>
           <button 
             type="button"
             onClick={onClose}
-            className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-[#D5FF00] hover:text-neutral-800 text-neutral-500 transition-colors"
+            className="h-8 w-8 rounded-lg border-2 border-neutral-900 bg-white flex items-center justify-center hover:bg-neutral-900 hover:text-[#D5FF00] text-neutral-900 font-bold transition-colors"
           >
             ✕
           </button>
@@ -596,7 +784,7 @@ function ConfirmModal({ open, onClose, onConfirm, title, message, confirmLabel =
           <div className="text-sm text-neutral-700">{message}</div>
 
           <div className="mt-6 flex justify-end gap-3">
-            <SmallButton onClick={onClose}>Cancel</SmallButton>
+            <SmallButton onClick={onClose}>{t("cancel")}</SmallButton>
             <SmallButton tone={isDanger ? "danger" : "primary"} onClick={onConfirm}>
               {confirmLabel}
             </SmallButton>
@@ -607,8 +795,9 @@ function ConfirmModal({ open, onClose, onConfirm, title, message, confirmLabel =
   );
 }
 
-function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, initialValue = "", submitLabel = "Save" }) {
+function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, initialValue = "", submitLabel = "Save", language = "en" }) {
   const [value, setValue] = useState(initialValue);
+  const t = (key) => TRANSLATIONS[language]?.[key] || TRANSLATIONS["en"][key] || key;
 
   useEffect(() => {
     if (open) setValue(initialValue);
@@ -620,13 +809,13 @@ function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, i
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 print:hidden">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
       
-      <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden transform transition-all">
-        <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
-          <h3 className="font-semibold text-neutral-800">{title}</h3>
+      <div className="relative w-full max-w-sm bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden transform transition-all">
+        <div className="px-5 py-4 border-b-4 border-neutral-900 flex items-center justify-between bg-[#D5FF00]">
+          <h3 className="font-black text-xl text-neutral-900 uppercase tracking-tight transform -rotate-1">{title}</h3>
           <button 
             type="button"
             onClick={onClose}
-            className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-[#D5FF00] hover:text-neutral-800 text-neutral-500 transition-colors"
+            className="h-8 w-8 rounded-lg border-2 border-neutral-900 bg-white flex items-center justify-center hover:bg-neutral-900 hover:text-[#D5FF00] text-neutral-900 font-bold transition-colors"
           >
             ✕
           </button>
@@ -640,7 +829,7 @@ function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, i
           className="p-5"
         >
           <label className="block">
-            <div className="text-sm font-medium text-neutral-700">{inputLabel}</div>
+            <div className="text-sm font-bold text-neutral-900 mb-1">{inputLabel}</div>
             <input
               autoFocus
               type="text"
@@ -652,7 +841,7 @@ function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, i
           </label>
 
           <div className="mt-6 flex justify-end gap-3">
-            <SmallButton onClick={onClose}>Cancel</SmallButton>
+            <SmallButton onClick={onClose}>{t("cancel")}</SmallButton>
             <SmallButton tone="primary" type="submit" disabled={!value.trim()}>
               {submitLabel}
             </SmallButton>
@@ -663,61 +852,74 @@ function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, i
   );
 }
 
-function ImportExportModal({ open, onClose, onImport, onExport }) {
+function ImportExportModal({ open, onClose, onImport, onExport, language = "en" }) {
   if (!open) return null;
+  const t = (key) => TRANSLATIONS[language]?.[key] || TRANSLATIONS["en"][key] || key;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 sm:p-8 print:hidden">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:hidden">
+      <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-lg max-h-[90vh] rounded-2xl bg-white border border-neutral-200 shadow-xl overflow-hidden flex flex-col"
+        className="relative w-full max-w-lg max-h-[85vh] bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col"
       >
-        <div className="sticky top-0 z-10 bg-white p-4 border-b border-neutral-100 flex items-start justify-between gap-4">
+        {/* Header */}
+        <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4">
           <div>
-            <div className="text-lg font-semibold text-neutral-800">Import / Export Data</div>
-            <div className="text-sm text-neutral-700 mt-1">Save or load your checklist data.</div>
-            <div className="mt-3 h-[2px] w-56 rounded-full bg-gradient-to-r from-[#D5FF00]/0 via-[#D5FF00] to-[#D5FF00]/0" />
+            <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase transform -rotate-1">
+              {t("importExport")}
+            </h2>
+            <p className="text-neutral-900 font-bold mt-1 text-sm">{t("saveLoadData")}</p>
           </div>
           <button
             type="button"
-            className="shrink-0 px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 transition"
+            className="h-10 w-10 rounded-xl bg-white border-2 border-neutral-900 hover:bg-neutral-900 hover:text-[#D5FF00] flex items-center justify-center font-black text-xl transition-all active:translate-y-1"
             onClick={onClose}
           >
-            Close
+            ✕
           </button>
         </div>
 
-        <div className="p-4 space-y-4 text-sm text-neutral-700 overflow-auto min-h-0">
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="font-semibold text-neutral-800">Export</div>
-            <div className="mt-1">
-              Export all your data (profile, template, and saved inspections) into a single JSON file. Keep this file as a backup.
+        {/* Content */}
+        <div className="p-6 space-y-6 text-sm text-neutral-700 overflow-auto min-h-0 bg-white">
+          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-green-50 transition-colors">
+            <div className="absolute -top-3 -left-3 bg-green-400 text-neutral-900 border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform -rotate-3 group-hover:rotate-0 transition-transform">
+              SAVE
             </div>
-            <div className="mt-4">
-              <SmallButton tone="primary" onClick={onExport}>
-                Export to JSON
-              </SmallButton>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("exportToFile")}</h3>
+            <p className="leading-relaxed">
+              {t("exportDesc")}
+            </p>
+            <div className="mt-5">
+              <button type="button" className="px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:bg-green-500 hover:border-green-600 hover:text-white active:translate-y-1 active:shadow-sm transition-all" onClick={onExport}>
+                {t("exportJson")}
+              </button>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="font-semibold text-neutral-800">Import</div>
-            <div className="mt-1">
-              Import data from a previously exported JSON file. This will overwrite your current data.
+          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-cyan-50 transition-colors">
+            <div className="absolute -top-3 -right-3 bg-cyan-400 text-neutral-900 border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform rotate-2 group-hover:rotate-0 transition-transform">
+              LOAD
             </div>
-            <div className="mt-4">
-              <SmallButton onClick={onImport}>Import from JSON</SmallButton>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("importFromFile")}</h3>
+            <p className="leading-relaxed">
+              {t("importDesc")}
+            </p>
+            <div className="mt-5">
+              <button type="button" className="px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-200 text-neutral-700 bg-white hover:bg-cyan-100 hover:border-cyan-400 transition-colors" onClick={onImport}>
+                {t("importJson")}
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="p-4 border-t border-neutral-100 flex items-center justify-end gap-2">
-          <SmallButton tone="primary" onClick={onClose}>
-            Done
-          </SmallButton>
+        {/* Footer */}
+        <div className="p-4 border-t-4 border-neutral-900 bg-neutral-100 flex items-center justify-end gap-2">
+          <button type="button" className="px-6 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[4px] active:shadow-none transition-all" onClick={onClose}>
+            {t("done")}
+          </button>
         </div>
       </div>
     </div>
@@ -845,15 +1047,24 @@ function badgeClass(cond) {
   switch (cond) {
     case "damaged":
     case "missing":
-      return "bg-red-100 text-red-800 border-red-200";
+      return "bg-red-500 text-white border-neutral-900";
     case "worn":
-      return "bg-amber-100 text-amber-800 border-amber-200";
+      return "bg-amber-300 text-neutral-900 border-neutral-900";
     case "n/a":
-      return "bg-neutral-100 text-neutral-700 border-neutral-200";
+      return "bg-neutral-200 text-neutral-500 border-neutral-900";
     default:
-      return "bg-emerald-100 text-emerald-800 border-emerald-200";
+      return "bg-emerald-300 text-neutral-900 border-neutral-900";
   }
 }
+
+const SECTION_BG_COLORS = [
+  "bg-cyan-100",
+  "bg-rose-100",
+  "bg-amber-100",
+  "bg-violet-100",
+  "bg-lime-100",
+  "bg-sky-100",
+];
 
 // ---------------------------
 // App
@@ -862,6 +1073,7 @@ function badgeClass(cond) {
 export default function App() {
   const [profile, setProfile] = useState(loadProfile);
   const [state, setState] = useState(loadState);
+  const [language, setLanguage] = useState("en");
 
   const [date, setDate] = useState(isoToday());
   const [inspectionType, setInspectionType] = useState("move-in"); // move-in | move-out | periodic
@@ -882,6 +1094,8 @@ export default function App() {
   const [importExportOpen, setImportExportOpen] = useState(false);
 
   const fileRef = useRef(null);
+
+  const t = (key) => TRANSLATIONS[language]?.[key] || TRANSLATIONS["en"][key] || key;
 
   // draft
   const [draft, setDraft] = useState(() => {
@@ -1331,6 +1545,7 @@ export default function App() {
 
       <ImportExportModal
         open={importExportOpen}
+        language={language}
         onClose={() => setImportExportOpen(false)}
         onExport={() => {
           exportJSON();
@@ -1343,60 +1558,67 @@ export default function App() {
       />
       <InputModal
         open={addSectionOpen}
+        language={language}
         onClose={() => setAddSectionOpen(false)}
         onSubmit={onAddSectionSubmit}
-        title="Add Section"
-        inputLabel="Section Title"
+        title={t("addSectionTitle")}
+        inputLabel={t("sectionTitle")}
         placeholder="e.g., Garage, Guest Room..."
-        submitLabel="Add Section"
+        submitLabel={t("addSection")}
       />
       <InputModal
         open={addItemState.open}
+        language={language}
         onClose={() => setAddItemState({ ...addItemState, open: false })}
         onSubmit={onAddItemSubmit}
-        title="Add Item"
-        inputLabel="Item Label"
+        title={t("addItemTitle")}
+        inputLabel={t("itemLabel")}
         placeholder="e.g., Ceiling light, Radiator..."
-        submitLabel="Add Item"
+        submitLabel={t("addItemTitle")}
       />
       <InputModal
         open={renameItemState.open}
+        language={language}
         onClose={() => setRenameItemState({ ...renameItemState, open: false })}
         onSubmit={onRenameItemSubmit}
-        title="Rename Item"
-        inputLabel="Item Label"
+        title={t("renameItemTitle")}
+        inputLabel={t("itemLabel")}
         initialValue={renameItemState.initialValue}
-        submitLabel="Save"
+        submitLabel={t("save")}
       />
       <InputModal
         open={renameSectionState.open}
+        language={language}
         onClose={() => setRenameSectionState({ ...renameSectionState, open: false })}
         onSubmit={onRenameSectionSubmit}
-        title="Rename Section"
-        inputLabel="Section Title"
+        title={t("renameSectionTitle")}
+        inputLabel={t("sectionTitle")}
         initialValue={renameSectionState.initialValue}
-        submitLabel="Save"
+        submitLabel={t("save")}
       />
       <ConfirmModal
         open={deleteSectionState.open}
+        language={language}
         onClose={() => setDeleteSectionState({ ...deleteSectionState, open: false })}
         onConfirm={onDeleteSectionConfirm}
-        title="Delete Section"
-        message={`Delete “${deleteSectionTitle}”? This removes it from the checklist template too.`}
-        confirmLabel="Delete"
+        title={t("deleteSectionTitle")}
+        message={language === 'de' ? `“${deleteSectionTitle}” löschen? Dies entfernt es auch aus der Checklistenvorlage.` : `Delete “${deleteSectionTitle}”? This removes it from the checklist template too.`}
+        confirmLabel={t("delete")}
         isDanger
       />
       <ConfirmModal
         open={deleteItemState.open}
+        language={language}
         onClose={() => setDeleteItemState({ ...deleteItemState, open: false })}
         onConfirm={onDeleteItemConfirm}
-        title="Delete Item"
-        message={`Delete item “${deleteItemLabel}”? This removes it from the checklist template too.`}
-        confirmLabel="Delete"
+        title={t("deleteItemTitle")}
+        message={language === 'de' ? `Element “${deleteItemLabel}” löschen? Dies entfernt es auch aus der Checklistenvorlage.` : `Delete item “${deleteItemLabel}”? This removes it from the checklist template too.`}
+        confirmLabel={t("delete")}
         isDanger
       />
       <ConfirmModal
         open={resetConfirmOpen}
+        language={language}
         onClose={() => setResetConfirmOpen(false)}
         onConfirm={performReset}
         title="Reset App Data"
@@ -1404,7 +1626,7 @@ export default function App() {
         confirmLabel="Reset"
         isDanger
       />
-      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} onReset={openResetConfirm} />
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} onReset={openResetConfirm} language={language} />
 
       {/* Hidden import input */}
       <input
@@ -1422,116 +1644,104 @@ export default function App() {
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="flex justify-center items-center mb-6">
+            <div className="flex justify-center items-center">
               <img
-                src="/inspectit-heading.png"
+                src={headingImage}
                 alt="Inspect-It"
-                className="w-full max-w-xl h-auto select-none"
+                className="w-full max-w-md h-auto select-none"
               />
             </div>
-            <div className="text-sm text-neutral-700">Organised inspection checklist for your new flat or home</div>
-            <div className="mt-3 h-[2px] w-80 rounded-full bg-gradient-to-r from-[#D5FF00]/0 via-[#D5FF00] to-[#D5FF00]/0" />
           </div>
 
           {/* Normalized top actions grid + pinned help */}
-          <div className="w-full sm:w-[680px]">
-            <div className="relative">
-              <div className="grid grid-cols-3 gap-4 items-center pr-12">
-                <a
-                  href={HUB_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  title="ToolStack Hub"
-                  className={`${(!HUB_URL || HUB_URL === "https://YOUR-WIX-HUB-URL-HERE") && "pointer-events-none opacity-50"}`}
-                >
-                  <img
-                    src={hubIcon}
-                    alt="Hub"
-                    className="h-16 w-auto hover:scale-105 transition-transform duration-200"
-                  />
-                </a>
-                <button type="button" onClick={openPreview} title="Preview">
-                  <img
-                    src={previewIcon}
-                    alt="Preview"
-                    className="h-16 w-auto hover:scale-105 transition-transform duration-200"
-                  />
-                </button>
-                <button type="button" onClick={() => setImportExportOpen(true)} title="Import / Export">
-                  <img
-                    src={exportIcon}
-                    alt="Export"
-                    className="h-16 w-auto hover:scale-105 transition-transform duration-200"
-                  />
-                </button>
-              </div>
+          <div className="flex items-center gap-3">
+            <a
+              href={HUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              title="ToolStack Hub"
+              className={`${(!HUB_URL || HUB_URL === "https://YOUR-WIX-HUB-URL-HERE") && "pointer-events-none opacity-50"}`}
+            >
+              <img
+                src={hubIcon}
+                alt="Hub"
+                className="h-20 w-auto hover:scale-105 transition-transform duration-200"
+              />
+            </a>
+            <button type="button" onClick={openPreview} title="Preview">
+              <img
+                src={previewIcon}
+                alt="Preview"
+                className="h-20 w-auto hover:scale-105 transition-transform duration-200"
+              />
+            </button>
+            <button type="button" onClick={() => setImportExportOpen(true)} title="Import / Export">
+              <img
+                src={exportIcon}
+                alt="Export"
+                className="h-20 w-auto hover:scale-105 transition-transform duration-200"
+              />
+            </button>
 
-              <button
-                type="button"
-                title="Help"
-                onClick={() => setHelpOpen(true)}
-                className="print:hidden absolute right-0 top-0 h-10 w-10 rounded-xl border border-neutral-200 bg-white hover:bg-[#D5FF00] shadow-sm flex items-center justify-center font-bold text-neutral-800"
-                aria-label="Help"
-              >
-                ?
-              </button>
-            </div>
+            <button
+              type="button"
+              title="Help"
+              onClick={() => setHelpOpen(true)}
+              className="print:hidden h-14 w-14 rounded-xl border-2 border-neutral-900 bg-[#D5FF00] text-neutral-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:shadow-none transition-all flex items-center justify-center font-black text-2xl"
+              aria-label="Help"
+            >
+              ?
+            </button>
           </div>
         </div>
 
         {/* Main grid */}
-        <div className="mt-5 grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Profile card */}
-          <div className={card}>
-            <div className={cardPad}>
-              <div className="font-semibold text-neutral-800">Profile</div>
-              <div className="mt-3 space-y-2">
-                <label className="block text-sm">
-                  <div className="text-neutral-600 font-medium">Household / Name (optional)</div>
-                  <input
-                    className={inputBase}
-                    value={profile.org}
-                    onChange={(e) => setProfile({ ...profile, org: e.target.value })}
-                    placeholder=""
-                  />
-                </label>
-                <label className="block text-sm">
-                  <div className="text-neutral-600 font-medium">Prepared by</div>
-                  <input
-                    className={inputBase}
-                    value={profile.user}
-                    onChange={(e) => setProfile({ ...profile, user: e.target.value })}
-                    placeholder="Your name"
-                  />
-                </label>
-                <div className="pt-2 text-xs text-neutral-600">
-                  Stored at <span className="font-mono">{PROFILE_KEY}</span>
-                </div>
+        <div className="flex flex-col gap-4">
+          {/* Draft card */}
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-end">
+              <div className="flex items-center rounded-xl border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-1 text-sm font-bold">
+                <button
+                  type="button"
+                  onClick={() => setLanguage("en")}
+                  className={`px-3 py-1 rounded-lg transition ${
+                    language === "en" ? "bg-neutral-900 text-[#D5FF00]" : "text-neutral-900 hover:bg-[#D5FF00]"
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage("de")}
+                  className={`px-3 py-1 rounded-lg transition ${
+                    language === "de" ? "bg-neutral-900 text-[#D5FF00]" : "text-neutral-900 hover:bg-[#D5FF00]"
+                  }`}
+                >
+                  DE
+                </button>
               </div>
             </div>
-          </div>
 
-          {/* Draft card */}
-          <div className={`${card} lg:col-span-3`}>
-            <div className={cardPad}>
+            <div className={card}>
+              <div className={cardPad}>
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <div className="font-semibold text-neutral-800">New inspection</div>
+                  <div className="font-semibold text-neutral-800">{t("newInspection")}</div>
                   <div className="text-sm text-neutral-600">
-                    Items: {totals.total} • Damaged: {totals.damaged} • Worn: {totals.worn} • Missing: {totals.missing}
+                    {t("items")}: {totals.total} • {t("damaged")}: {totals.damaged} • {t("worn")}: {totals.worn} • {t("missing")}: {totals.missing}
                   </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
                   <div className="w-[220px]">
-                    <DatePicker label="Date" value={date} onChange={setDate} />
+                    <DatePicker label={t("date")} value={date} onChange={setDate} language={language} />
                   </div>
                   <label className="text-sm w-[220px]">
-                    <div className="text-neutral-600 font-medium">Type</div>
+                    <div className="text-neutral-600 font-medium">{t("type")}</div>
                     <select className={inputBase} value={inspectionType} onChange={(e) => setInspectionType(e.target.value)}>
-                      <option value="move-in">Move-in</option>
-                      <option value="move-out">Move-out</option>
-                      <option value="periodic">Periodic</option>
+                      <option value="move-in">{t("moveIn")}</option>
+                      <option value="move-out">{t("moveOut")}</option>
+                      <option value="periodic">{t("periodic")}</option>
                     </select>
                   </label>
                 </div>
@@ -1539,7 +1749,7 @@ export default function App() {
 
               <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label className="text-sm">
-                  <div className="text-neutral-600 font-medium">Property label</div>
+                  <div className="text-neutral-600 font-medium">{t("propertyLabel")}</div>
                   <input
                     className={inputBase}
                     value={propertyLabel}
@@ -1548,157 +1758,165 @@ export default function App() {
                   />
                 </label>
                 <label className="text-sm">
-                  <div className="text-neutral-600 font-medium">Occupant(s)</div>
+                  <div className="text-neutral-600 font-medium">{t("occupants")}</div>
                   <input className={inputBase} value={occupants} onChange={(e) => setOccupants(e.target.value)} placeholder="Names" />
                 </label>
                 <label className="text-sm md:col-span-2">
-                  <div className="text-neutral-600 font-medium">Address</div>
+                  <div className="text-neutral-600 font-medium">{t("address")}</div>
                   <input className={inputBase} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, City" />
                 </label>
               </div>
 
               <label className="block text-sm mt-3">
-                <div className="text-neutral-600 font-medium">General notes</div>
+                <div className="text-neutral-600 font-medium">{t("generalNotes")}</div>
                 <textarea
                   className={`${inputBase} min-h-[90px]`}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Context: keys received, meter readings, agreements, etc."
+                  placeholder={t("contextHint")}
                 />
               </label>
-
-              {/* Checklist builder */}
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                <div className="text-sm text-neutral-700">
-                  <span className="font-semibold text-neutral-800">Checklist</span>
-                  <span className="text-neutral-600"> • Add sections/items if your home has extras (basement, guest bathroom, etc.)</span>
-                </div>
-                <SmallButton tone="primary" onClick={() => setAddSectionOpen(true)}>
-                  + Add section
-                </SmallButton>
               </div>
+            </div>
 
-              {/* Sections */}
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                {(draft.sections || []).map((s) => (
-                  <div key={s.id} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="font-semibold text-neutral-800 truncate">{s.title}</div>
-                        <div className="text-xs text-neutral-600">{(s.items || []).length} items</div>
+            <div className={`${card} mt-3 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]`}>
+              <div className={cardPad}>
+                {/* Checklist builder */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-sm text-neutral-700">
+                    <span className="font-semibold text-neutral-800">{t("checklist")}</span>
+                    <span className="text-neutral-600"> {t("checklistHint")}</span>
+                  </div>
+                  <SmallButton tone="primary" onClick={() => setAddSectionOpen(true)}>
+                    + {t("addSection")}
+                  </SmallButton>
+                </div>
+
+                {/* Sections */}
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {(draft.sections || []).map((s, index) => (
+                    <div
+                      key={s.id}
+                      className={`rounded-2xl border-2 border-neutral-900 p-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${SECTION_BG_COLORS[index % SECTION_BG_COLORS.length]}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-bold text-neutral-800 truncate">{s.title}</div>
+                          <div className="text-xs text-neutral-600">{(s.items || []).length} {t("items")}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <SmallButton onClick={() => openAddItem(s.id)} className="px-2 py-1.5" tone="primary">
+                            + Item
+                          </SmallButton>
+                          <IconButton title="Rename section" onClick={() => openRenameSection(s.id)}>
+                            ✎
+                          </IconButton>
+                          <IconButton title="Delete section" tone="danger" onClick={() => openDeleteSection(s.id)}>
+                            🗑
+                          </IconButton>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <SmallButton onClick={() => openAddItem(s.id)} className="px-2 py-1.5" tone="primary">
-                          + Item
-                        </SmallButton>
-                        <IconButton title="Rename section" onClick={() => openRenameSection(s.id)}>
-                          ✎
-                        </IconButton>
-                        <IconButton title="Delete section" tone="danger" onClick={() => openDeleteSection(s.id)}>
-                          🗑
-                        </IconButton>
-                      </div>
-                    </div>
 
-                    <div className="mt-3 space-y-2">
-                      {(s.items || []).length === 0 ? (
-                        <div className="text-sm text-neutral-600">No items yet — click “+ Item”.</div>
-                      ) : null}
+                      <div className="mt-3 space-y-2">
+                        {(s.items || []).length === 0 ? (
+                          <div className="text-sm text-neutral-600">No items yet — click “+ Item”.</div>
+                        ) : null}
 
-                      {(s.items || []).map((it) => (
-                        <div key={it.id} className="rounded-2xl bg-white border border-neutral-200 p-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className="text-sm font-medium text-neutral-800 break-words">{it.label}</div>
-                              <div className="mt-2 flex items-center gap-2 print:hidden">
-                                <button
-                                  type="button"
-                                  className="text-xs px-2 py-1 rounded-lg border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-700"
-                                  onClick={() => openRenameItem(s.id, it.id)}
-                                  title="Rename item"
+                        {(s.items || []).map((it) => (
+                          <div key={it.id} className="rounded-2xl bg-white border-2 border-neutral-900 p-3 shadow-sm">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="text-sm font-medium text-neutral-800 break-words">{it.label}</div>
+                                <div className="mt-2 flex items-center gap-2 print:hidden">
+                                  <button
+                                    type="button"
+                                    className="text-xs px-2 py-1 rounded-lg border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-900 font-bold"
+                                    onClick={() => openRenameItem(s.id, it.id)}
+                                    title="Rename item"
+                                  >
+                                    {t("rename")}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="text-xs px-2 py-1 rounded-lg border-2 border-neutral-900 bg-red-100 hover:bg-red-200 text-red-900 font-bold"
+                                    onClick={() => openDeleteItem(s.id, it.id)}
+                                    title="Delete item"
+                                  >
+                                    {t("delete")}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Condition controls (aligned) */}
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`inline-flex items-center h-9 text-xs px-2 rounded-full border-2 font-bold ${badgeClass(it.condition)}`}>
+                                  {t(`condition_${it.condition}`) || "OK"}
+                                </span>
+                                <select
+                                  className="h-9 text-sm px-2 rounded-xl border-2 border-neutral-900 bg-white focus:outline-none focus:bg-[#D5FF00]/10 font-bold"
+                                  value={it.condition}
+                                  onChange={(e) => updateItem(s.id, it.id, { condition: e.target.value })}
                                 >
-                                  Rename
-                                </button>
-                                <button
-                                  type="button"
-                                  className="text-xs px-2 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-700"
-                                  onClick={() => openDeleteItem(s.id, it.id)}
-                                  title="Delete item"
-                                >
-                                  Delete
-                                </button>
+                                  {CONDITION_OPTIONS.map((o) => (
+                                    <option key={o.key} value={o.key}>
+                                      {t(`condition_${o.key}`)}
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                             </div>
 
-                            {/* Condition controls (aligned) */}
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className={`inline-flex items-center h-9 text-xs px-2 rounded-full border ${badgeClass(it.condition)}`}>
-                                {CONDITION_OPTIONS.find((o) => o.key === it.condition)?.label || "OK"}
-                              </span>
-                              <select
-                                className="h-9 text-sm px-2 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25"
-                                value={it.condition}
-                                onChange={(e) => updateItem(s.id, it.id, { condition: e.target.value })}
-                              >
-                                {CONDITION_OPTIONS.map((o) => (
-                                  <option key={o.key} value={o.key}>
-                                    {o.label}
-                                  </option>
-                                ))}
-                              </select>
+                            {/* Wider note + wrap, evidence under */}
+                            <div className="mt-3 space-y-2">
+                              <AutoTextarea
+                                className="w-full px-3 py-2 rounded-xl border-2 border-neutral-900 text-sm bg-white focus:outline-none focus:bg-[#D5FF00]/10 resize-none overflow-hidden whitespace-pre-wrap font-medium"
+                                placeholder={t("notePlaceholder")}
+                                value={it.note}
+                                onChange={(e) => updateItem(s.id, it.id, { note: e.target.value })}
+                              />
+                              <input
+                                className="w-full px-3 py-2 rounded-xl border-2 border-neutral-900 text-sm bg-white focus:outline-none focus:bg-[#D5FF00]/10 font-medium"
+                                placeholder={t("evidenceRef")}
+                                value={it.evidenceRef}
+                                onChange={(e) => updateItem(s.id, it.id, { evidenceRef: e.target.value })}
+                              />
                             </div>
                           </div>
-
-                          {/* Wider note + wrap, evidence under */}
-                          <div className="mt-3 space-y-2">
-                            <AutoTextarea
-                              className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25 resize-none overflow-hidden whitespace-pre-wrap"
-                              placeholder="Note (what you see)"
-                              value={it.note}
-                              onChange={(e) => updateItem(s.id, it.id, { note: e.target.value })}
-                            />
-                            <input
-                              className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/25"
-                              placeholder="Evidence ref (photo # / file / email)"
-                              value={it.evidenceRef}
-                              onChange={(e) => updateItem(s.id, it.id, { evidenceRef: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                  ))}
+                </div>
 
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <SmallButton onClick={resetDraft}>Reset</SmallButton>
-                <SmallButton tone="primary" onClick={saveInspection}>
-                  Save inspection
-                </SmallButton>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <SmallButton onClick={resetDraft}>{t("reset")}</SmallButton>
+                  <SmallButton tone="primary" onClick={saveInspection}>
+                    {t("saveInspection")}
+                  </SmallButton>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
         {/* Saved inspections */}
         <div className={`mt-4 ${card}`}>
           <div className={cardPad}>
-            <div className="font-semibold text-neutral-800">Saved inspections</div>
+            <div className="font-semibold text-neutral-800">{t("savedInspections")}</div>
             {(state.inspections || []).length === 0 ? (
-              <div className="mt-2 text-sm text-neutral-600">No saved inspections yet.</div>
+              <div className="mt-2 text-sm text-neutral-600">{t("noSavedInspections")}</div>
             ) : (
               <div className="mt-3 overflow-auto">
                 <table className="w-full text-sm">
                   <thead className="text-left text-neutral-600">
-                    <tr className="border-b border-neutral-200">
-                      <th className="py-2 pr-2">Date</th>
-                      <th className="py-2 pr-2">Type</th>
-                      <th className="py-2 pr-2">Property</th>
-                      <th className="py-2 pr-2">Damaged</th>
-                      <th className="py-2 pr-2">Worn</th>
-                      <th className="py-2 pr-2">Missing</th>
-                      <th className="py-2 pr-2 text-right">Action</th>
+                    <tr className="border-b-2 border-neutral-900">
+                      <th className="py-2 pr-2">{t("date")}</th>
+                      <th className="py-2 pr-2">{t("type")}</th>
+                      <th className="py-2 pr-2">{t("property")}</th>
+                      <th className="py-2 pr-2">{t("damaged")}</th>
+                      <th className="py-2 pr-2">{t("worn")}</th>
+                      <th className="py-2 pr-2">{t("missing")}</th>
+                      <th className="py-2 pr-2 text-right">{t("action")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1710,10 +1928,10 @@ export default function App() {
                         <td className="py-2 pr-2">
                           <span
                             className={
-                              "text-xs px-2 py-1 rounded-full border " +
+                              "text-xs px-2 py-1 rounded-full border-2 font-bold " +
                               (x.summary?.damaged
-                                ? "bg-red-100 text-red-800 border-red-200"
-                                : "bg-emerald-100 text-emerald-800 border-emerald-200")
+                                ? "bg-red-500 text-white border-neutral-900"
+                                : "bg-emerald-300 text-neutral-900 border-neutral-900")
                             }
                           >
                             {x.summary?.damaged || 0}
@@ -1723,10 +1941,10 @@ export default function App() {
                         <td className="py-2 pr-2">{x.summary?.missing || 0}</td>
                         <td className="py-2 pr-2 text-right">
                           <button
-                            className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200 hover:bg-[#D5FF00] text-neutral-800"
+                            className="px-3 py-1.5 rounded-xl bg-white border-2 border-neutral-900 hover:bg-[#D5FF00] text-neutral-900 font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px] transition-all"
                             onClick={() => deleteInspection(x.id)}
                           >
-                            Delete
+                            {t("delete")}
                           </button>
                         </td>
                       </tr>
@@ -1740,85 +1958,83 @@ export default function App() {
 
         {/* Preview modal */}
         {previewOpen ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setPreviewOpen(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:static">
+            <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity" onClick={() => setPreviewOpen(false)} />
 
-            <div className="relative w-full max-w-5xl">
-              <div className="mb-3 rounded-2xl bg-white border border-neutral-200 shadow-sm p-3 flex items-center justify-between gap-3">
-                <div className="text-lg font-semibold text-neutral-800">Print preview</div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 bg-white hover:bg-[#D5FF00] text-neutral-800 transition"
-                    onClick={() => window.print()}
-                  >
-                    Print / Save PDF
-                  </button>
-                  <button
-                    type="button"
-                    className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-700 bg-neutral-700 text-white hover:bg-[#D5FF00] hover:text-neutral-800 hover:border-[#D5FF00] transition"
-                    onClick={() => setPreviewOpen(false)}
-                  >
-                    Close
-                  </button>
+            <div className="relative w-full max-w-5xl max-h-[90vh] bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden print:overflow-visible print:static flex flex-col">
+              {/* Header */}
+              <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase transform -rotate-1">
+                    {t("printPreview")}
+                  </h2>
+                  <p className="text-neutral-900 font-bold mt-1 text-sm">{t("checkIt")}</p>
                 </div>
+                <button
+                  type="button"
+                  className="h-10 w-10 rounded-xl bg-white border-2 border-neutral-900 hover:bg-neutral-900 hover:text-[#D5FF00] flex items-center justify-center font-black text-xl transition-all active:translate-y-1"
+                  onClick={() => setPreviewOpen(false)}
+                >
+                  ✕
+                </button>
               </div>
 
-              <div className="rounded-2xl bg-white border border-neutral-200 shadow-xl overflow-auto max-h-[80vh]">
-                <div id="inspectit-print-preview" className="p-6">
+              <div className="flex-1 overflow-y-auto bg-white">
+                <div id="inspectit-print-preview" className="p-8">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-2xl font-bold tracking-tight text-neutral-800">
-                        Inspect<span className="text-[#D5FF00]">It</span>
-                      </div>
-                      <div className="text-sm text-neutral-700">Inspection Report</div>
-                      <div className="mt-3 h-[2px] w-72 rounded-full bg-gradient-to-r from-[#D5FF00]/0 via-[#D5FF00] to-[#D5FF00]/0" />
+                      <img
+                        src={headingImage}
+                        alt="Inspect-It"
+                        className="h-16 w-auto"
+                      />
+                      <div className="text-sm text-neutral-700 mt-1">{t("inspection")} Report</div>
                     </div>
-                    <div className="text-sm text-neutral-700">Generated: {new Date().toLocaleString()}</div>
+                    <div className="text-sm text-neutral-700">{t("generated")}: {new Date().toLocaleString(language)}</div>
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                     <div className="rounded-2xl border border-neutral-200 p-4">
-                      <div className="text-neutral-600">Prepared by</div>
+                      <div className="text-neutral-600">{t("preparedBy")}</div>
                       <div className="mt-1 font-semibold text-neutral-800">{profile.user || "-"}</div>
                       <div className="text-xs text-neutral-600 mt-1">{profile.org || "-"}</div>
                     </div>
                     <div className="rounded-2xl border border-neutral-200 p-4">
-                      <div className="text-neutral-600">Inspection</div>
+                      <div className="text-neutral-600">{t("inspection")}</div>
                       <div className="mt-1">
-                        Date: <span className="font-semibold text-neutral-800">{date}</span>
+                        {t("date")}: <span className="font-semibold text-neutral-800">{date}</span>
                       </div>
                       <div className="mt-1">
-                        Type: <span className="font-semibold text-neutral-800">{inspectionType}</span>
+                        {t("type")}: <span className="font-semibold text-neutral-800">{inspectionType}</span>
                       </div>
                     </div>
                     <div className="rounded-2xl border border-neutral-200 p-4">
-                      <div className="text-neutral-600">Property</div>
+                      <div className="text-neutral-600">{t("property")}</div>
                       <div className="mt-1">
-                        Label: <span className="font-semibold text-neutral-800">{propertyLabel || "-"}</span>
+                        {t("label")}: <span className="font-semibold text-neutral-800">{propertyLabel || "-"}</span>
                       </div>
                       <div className="mt-1">
-                        Occupants: <span className="font-semibold text-neutral-800">{occupants || "-"}</span>
+                        {t("occupants")}: <span className="font-semibold text-neutral-800">{occupants || "-"}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-3 text-sm">
-                    <div className="text-neutral-600">Address</div>
+                    <div className="text-neutral-600">{t("address")}</div>
                     <div className="font-semibold text-neutral-800">{address || "-"}</div>
                   </div>
 
                   {notes ? (
                     <div className="mt-4 text-sm">
-                      <div className="font-semibold text-neutral-800">General notes</div>
+                      <div className="font-semibold text-neutral-800">{t("generalNotes")}</div>
                       <div className="text-neutral-700 whitespace-pre-wrap">{notes}</div>
                     </div>
                   ) : null}
 
                   <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm">
-                    <div className="font-semibold text-neutral-800">Summary</div>
+                    <div className="font-semibold text-neutral-800">{t("summary")}</div>
                     <div className="mt-1 text-neutral-700">
-                      Items: {totals.total} • Damaged: {totals.damaged} • Worn: {totals.worn} • Missing: {totals.missing}
+                      {t("items")}: {totals.total} • {t("damaged")}: {totals.damaged} • {t("worn")}: {totals.worn} • {t("missing")}: {totals.missing}
                     </div>
                   </div>
 
@@ -1838,7 +2054,7 @@ export default function App() {
                                 {it.evidenceRef ? <div className="text-neutral-600">Evidence: {it.evidenceRef}</div> : null}
                               </div>
                               <span className={`text-xs px-2 py-1 rounded-full border ${badgeClass(it.condition)}`}>
-                                {CONDITION_OPTIONS.find((o) => o.key === it.condition)?.label || "OK"}
+                                {t(`condition_${it.condition}`) || "OK"}
                               </span>
                             </div>
                           ))}
@@ -1849,19 +2065,30 @@ export default function App() {
 
                   <div className="mt-6 grid grid-cols-2 gap-6 text-sm">
                     <div>
-                      <div className="text-neutral-600">Tenant</div>
-                      <div className="mt-8 border-t border-neutral-200 pt-2">Signature</div>
+                      <div className="text-neutral-600">{t("tenant")}</div>
+                      <div className="mt-8 border-t border-neutral-200 pt-2">{t("signature")}</div>
                     </div>
                     <div>
-                      <div className="text-neutral-600">Landlord / Agent</div>
-                      <div className="mt-8 border-t border-neutral-200 pt-2">Signature</div>
+                      <div className="text-neutral-600">{t("landlord")}</div>
+                      <div className="mt-8 border-t border-neutral-200 pt-2">{t("signature")}</div>
                     </div>
                   </div>
 
                   <div className="mt-6 text-xs text-neutral-600">
-                    Storage keys: <span className="font-mono">{KEY}</span> • <span className="font-mono">{PROFILE_KEY}</span>
+                    {t("storageKeys")}: <span className="font-mono">{KEY}</span> • <span className="font-mono">{PROFILE_KEY}</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t-4 border-neutral-900 bg-neutral-100 flex items-center justify-end gap-4">
+                <button
+                  type="button"
+                  className="px-6 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[4px] active:shadow-none transition-all"
+                  onClick={() => window.print()}
+                >
+                  {t("printSavePdf")}
+                </button>
               </div>
             </div>
           </div>
