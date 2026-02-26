@@ -690,52 +690,119 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
 
         {/* Content */}
         <div className="p-6 overflow-y-auto space-y-6 bg-white">
-          
-          {/* Autosave Card */}
-          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-[#D5FF00]/10 transition-colors">
-            <div className="absolute -top-3 -left-3 bg-neutral-900 text-white text-xs font-bold px-3 py-1 rounded-full transform -rotate-3 group-hover:rotate-0 transition-transform">
-              AUTOSAVE
-            </div>
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("localStorageMagic")}</h3>
+          {/* 1) About InspectIt */}
+          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">About InspectIt</h3>
             <p className="text-sm text-neutral-700 leading-relaxed">
-              {t("localStorageDesc")}
+              InspectIt is a local-first property inspection tool designed to help you record structured inspection
+              notes, condition details, and generate clean print-ready reports. It runs entirely in your browser with
+              no accounts, no cloud storage, and no automatic data sharing.
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-               <span className="font-mono text-[10px] bg-white border border-neutral-300 rounded px-2 py-1 text-neutral-500">{KEY}</span>
-            </div>
           </div>
 
-          {/* Continuity Card */}
-          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-cyan-50 transition-colors">
-             <div className="absolute -top-3 -right-3 bg-cyan-400 text-neutral-900 border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform rotate-2 group-hover:rotate-0 transition-transform">
-              IMPORTANT
-            </div>
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("dontLoseStuff")}</h3>
-            <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside marker:text-neutral-900">
-              <li><span className="font-black bg-yellow-200 px-1">{t("export")}</span> {t("continuityDesc1").replace("Export", "")}</li>
-              <li>{t("continuityDesc2")}</li>
-              <li><span className="font-black bg-green-200 px-1">{t("import")}</span> {t("continuityDesc3").replace("Import", "")}</li>
+          {/* 2) How InspectIt Works */}
+          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">How InspectIt Works</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed mb-2">InspectIt follows a structured workflow:</p>
+            <ol className="text-sm text-neutral-700 space-y-2 list-decimal list-inside">
+              <li>
+                <strong>Create Inspection Profile</strong>
+                <br />
+                Enter property or inspection details.
+              </li>
+              <li>
+                <strong>Add Inspection Sections</strong>
+                <br />
+                Organise inspection categories (e.g., Rooms, Exterior, Utilities, Condition Areas).
+              </li>
+              <li>
+                <strong>Record Findings</strong>
+                <br />
+                Add notes, condition descriptions, and relevant details for each section.
+              </li>
+              <li>
+                <strong>Review Overview</strong>
+                <br />
+                Confirm entries and inspection completeness.
+              </li>
+              <li>
+                <strong>Preview & Print</strong>
+                <br />
+                Generate a clean, print-ready inspection report.
+              </li>
+              <li>
+                <strong>Export a Backup</strong>
+                <br />
+                Export a JSON backup regularly, especially after major updates.
+              </li>
+            </ol>
+          </div>
+
+          {/* 3) Your Data & Privacy */}
+          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">Your Data & Privacy</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed mb-2">
+              Your data is saved locally in this browser using secure local storage. This means:
+            </p>
+            <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
+              <li>Your data stays on this device</li>
+              <li>Clearing browser data can remove inspection records</li>
+              <li>Incognito/private mode will not retain data</li>
+              <li>Data does not automatically sync across devices</li>
             </ul>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-             {/* PDF Card */}
-            <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-4">
-              <h3 className="font-bold text-neutral-900 mb-1">{t("printingPdf")}</h3>
-              <p className="text-xs text-neutral-600">
-                {t("printingPdfDesc")}
-              </p>
-            </div>
-
-             {/* Privacy Card */}
-            <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-4">
-              <h3 className="font-bold text-neutral-900 mb-1">{t("privacy")}</h3>
-              <p className="text-xs text-neutral-600">
-                {t("privacyDesc")}
-              </p>
-            </div>
+          {/* 4) Backup & Restore */}
+          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">Backup & Restore</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed mb-2">
+              <strong>Export</strong> downloads a JSON backup of your current InspectIt data.
+            </p>
+            <p className="text-sm text-neutral-700 leading-relaxed mb-2">
+              <strong>Import</strong> restores a previously exported JSON file and replaces current app data.
+            </p>
+            <p className="text-sm text-neutral-700 leading-relaxed">Recommended routine:</p>
+            <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
+              <li>Export weekly</li>
+              <li>Export after major edits</li>
+              <li>Store backups in two locations (e.g., Downloads + Drive/USB)</li>
+            </ul>
           </div>
 
+          {/* 5) Buttons Explained */}
+          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">Buttons Explained</h3>
+            <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
+              <li><strong>Preview</strong> – Opens the print-ready inspection report.</li>
+              <li><strong>Print / Save PDF</strong> – Prints only the preview sheet. Choose “Save as PDF” to create a file.</li>
+              <li><strong>Export</strong> – Downloads a JSON backup file.</li>
+              <li><strong>Import</strong> – Restores data from a JSON backup file.</li>
+            </ul>
+          </div>
+
+          {/* 6) Storage Keys (Advanced) */}
+          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">Storage Keys (Advanced)</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed">App data key: <code className="font-mono text-xs bg-white border border-neutral-300 rounded px-2 py-1">{KEY}</code></p>
+            <p className="text-sm text-neutral-700 leading-relaxed mt-1">Shared profile key: <code className="font-mono text-xs bg-white border border-neutral-300 rounded px-2 py-1">{PROFILE_KEY}</code></p>
+          </div>
+
+          {/* 7) Notes / Limitations */}
+          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">Notes / Limitations</h3>
+            <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
+              <li>InspectIt is an inspection documentation tool. Reports depend on the accuracy of the information entered.</li>
+              <li>Use Export regularly to avoid data loss.</li>
+            </ul>
+          </div>
+
+          {/* 8) Support / Feedback */}
+          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">Support / Feedback</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed">
+              If something breaks, include: device + browser + steps to reproduce + expected vs actual behaviour.
+            </p>
+          </div>
         </div>
 
         {/* Footer */}
