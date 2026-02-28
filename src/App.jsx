@@ -919,9 +919,16 @@ function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, i
   );
 }
 
-function ImportExportModal({ open, onClose, onImport, onExport, language = "en" }) {
+function ImportExportModal({ open, onClose, onImport, onExport, onPrint, language = "en" }) {
   if (!open) return null;
   const t = (key) => TRANSLATIONS[language]?.[key] || TRANSLATIONS["en"][key] || key;
+
+  const emailSubject = encodeURIComponent(`InspectIt Export Pack – ${new Date().toISOString().slice(0, 10)}`);
+  const emailBody = encodeURIComponent(
+    "Attached: PDF export from InspectIt (please attach the downloaded PDF file).\n\n" +
+    "Exports are generated locally on your device. No data is uploaded automatically."
+  );
+  const mailtoLink = `mailto:?subject=${emailSubject}&body=${emailBody}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:hidden">
@@ -936,9 +943,9 @@ function ImportExportModal({ open, onClose, onImport, onExport, language = "en" 
         <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase transform -rotate-1">
-              {t("importExport")}
+              Export Pack
             </h2>
-            <p className="text-neutral-900 font-bold mt-1 text-sm">{t("saveLoadData")}</p>
+            <p className="text-neutral-900 font-bold mt-1 text-sm">Save, share, or back up your data.</p>
           </div>
           <button
             type="button"
@@ -951,33 +958,44 @@ function ImportExportModal({ open, onClose, onImport, onExport, language = "en" 
 
         {/* Content */}
         <div className="p-6 space-y-6 text-sm text-neutral-700 overflow-auto min-h-0 bg-white">
-          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-green-50 transition-colors">
-            <div className="absolute -top-3 -left-3 bg-green-400 text-neutral-900 border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform -rotate-3 group-hover:rotate-0 transition-transform">
-              SAVE
+          
+          {/* PDF & Print Section */}
+          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-indigo-50 transition-colors">
+             <div className="absolute -top-3 -left-3 bg-indigo-400 text-white border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform -rotate-3 group-hover:rotate-0 transition-transform">
+              PDF
             </div>
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("exportToFile")}</h3>
-            <p className="leading-relaxed">
-              {t("exportDesc")}
-            </p>
-            <div className="mt-5">
-              <button type="button" className="px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:bg-green-500 hover:border-green-600 hover:text-white active:translate-y-1 active:shadow-sm transition-all" onClick={onExport}>
-                {t("exportJson")}
-              </button>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">PDF & Print</h3>
+            <div className="flex flex-col gap-2 mt-4">
+                <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] transition-colors flex items-center justify-between" onClick={onPrint}>
+                    <span>Download PDF</span>
+                </button>
+                <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] transition-colors" onClick={onPrint}>
+                    Print / Save PDF
+                </button>
+                <a href={mailtoLink} className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] transition-colors block">
+                    Create Email Draft
+                </a>
             </div>
           </div>
 
-          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-cyan-50 transition-colors">
-            <div className="absolute -top-3 -right-3 bg-cyan-400 text-neutral-900 border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform rotate-2 group-hover:rotate-0 transition-transform">
-              LOAD
+          {/* JSON Backup Section */}
+          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-emerald-50 transition-colors">
+            <div className="absolute -top-3 -right-3 bg-emerald-400 text-neutral-900 border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform rotate-2 group-hover:rotate-0 transition-transform">
+              JSON
             </div>
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("importFromFile")}</h3>
-            <p className="leading-relaxed">
-              {t("importDesc")}
-            </p>
-            <div className="mt-5">
-              <button type="button" className="px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-200 text-neutral-700 bg-white hover:bg-cyan-100 hover:border-cyan-400 transition-colors" onClick={onImport}>
-                {t("importJson")}
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">JSON Backup</h3>
+            <div className="flex flex-col gap-2 mt-4">
+              <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:bg-emerald-600 hover:border-emerald-700 active:translate-y-1 active:shadow-sm transition-all" onClick={onExport}>
+                Download JSON
               </button>
+              <div className="pt-2 border-t border-neutral-200 mt-2">
+                  <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-200 text-neutral-700 bg-white hover:bg-emerald-100 hover:border-emerald-400 transition-colors" onClick={onImport}>
+                    Import JSON
+                  </button>
+                  <p className="text-xs text-neutral-500 mt-2 px-1">
+                    Warning: Import replaces current app data. Export first if unsure.
+                  </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1614,6 +1632,10 @@ export default function App() {
         open={importExportOpen}
         language={language}
         onClose={() => setImportExportOpen(false)}
+        onPrint={() => {
+          printFromPreview();
+          setImportExportOpen(false);
+        }}
         onExport={() => {
           exportJSON();
           setImportExportOpen(false);
