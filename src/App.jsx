@@ -160,6 +160,32 @@ function CalendarIcon({ className = "" }) {
   );
 }
 
+function EyeIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function PencilIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function TrashIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
@@ -245,6 +271,10 @@ function buildMonthGrid(viewDate) {
   return grid;
 }
 
+function t_fmt(str, ...args) {
+  return str.replace(/{(\d+)}/g, (match, number) => typeof args[number] !== 'undefined' ? args[number] : match);
+}
+
 function DatePicker({ label = "Date", value, onChange, language = "en" }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
@@ -254,6 +284,8 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
     const t = new Date();
     return new Date(t.getFullYear(), t.getMonth(), t.getDate());
   }, []);
+
+  const t = (key) => TRANSLATIONS[language]?.[key] || TRANSLATIONS["en"][key] || key;
 
   const selected = useMemo(() => parseISODate(value), [value]);
 
@@ -307,7 +339,7 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
 
   const grid = useMemo(() => buildMonthGrid(viewDate), [viewDate]);
 
-  const display = value && isValidISODate(value) ? value : "Select date";
+  const display = value && isValidISODate(value) ? value : t("selectDate");
 
   const sameDay = (a, b) => {
     if (!a || !b) return false;
@@ -325,9 +357,6 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
     return Array.from({ length: 7 }, (_, i) => new Date(2021, 0, 4 + i).toLocaleString(language, { weekday: 'short' }));
   }, [language]);
 
-  const t_today = language === "de" ? "Heute" : "Today";
-  const t_close = language === "de" ? "Schließen" : "Close";
-
   return (
     <div className="text-sm">
       <div className="text-neutral-600 font-medium">{label}</div>
@@ -337,7 +366,7 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
         type="button"
         onClick={() => setOpen(true)}
         className="w-full mt-1 px-3 py-2 rounded-xl border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-800 transition flex items-center justify-between gap-2 font-medium"
-        title="Choose a date"
+        title={t("chooseDate")}
       >
         <span className={value ? "font-medium" : "text-neutral-500"}>{display}</span>
         <CalendarIcon className="h-5 w-5 text-neutral-600" />
@@ -348,7 +377,7 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
           <button
             type="button"
             className="fixed inset-0 z-40 cursor-default"
-            aria-label="Close date picker"
+            aria-label={t("closeDatePicker")}
             onClick={() => setOpen(false)}
           />
 
@@ -362,8 +391,8 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
                 type="button"
                 onClick={() => setViewDate((d) => startOfMonth(addMonths(d, -1)))}
                 className="h-9 w-9 rounded-xl border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px] transition-all"
-                aria-label="Previous month"
-                title="Previous month"
+                aria-label={t("previousMonth")}
+                title={t("previousMonth")}
               >
                 <span className="text-lg leading-none">‹</span>
               </button>
@@ -376,8 +405,8 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
                 type="button"
                 onClick={() => setViewDate((d) => startOfMonth(addMonths(d, 1)))}
                 className="h-9 w-9 rounded-xl border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px] transition-all"
-                aria-label="Next month"
-                title="Next month"
+                aria-label={t("nextMonth")}
+                title={t("nextMonth")}
               >
                 <span className="text-lg leading-none">›</span>
               </button>
@@ -433,7 +462,7 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
                   setOpen(false);
                 }}
               >
-                {t_today}
+                {t("today")}
               </button>
 
               <button
@@ -441,7 +470,7 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
                 className="px-3 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] hover:bg-neutral-800"
                 onClick={() => setOpen(false)}
               >
-                {t_close}
+                {t("close")}
               </button>
             </div>
           </div>
@@ -498,6 +527,8 @@ const TRANSLATIONS = {
     savedInspections: "Saved inspections",
     noSavedInspections: "No saved inspections yet.",
     action: "Action",
+    view: "View",
+    edit: "Edit",
     delete: "Delete",
     printSavePdf: "Print / Save PDF",
     printPreview: "Print Preview",
@@ -547,7 +578,7 @@ const TRANSLATIONS = {
     save: "Save",
     saveInspection: "Save inspection",
     checklistHint: "• Add sections/items if your home has extras (basement, guest bathroom, etc.)",
-    contextHint: "Context: keys received, meter readings, agreements, etc.",
+    contextHint: "Context: keys received, meter readings, agreements, etc. (what you see)",
     selectDate: "Select date",
     moveIn: "Move-in",
     moveOut: "Move-out",
@@ -564,7 +595,82 @@ const TRANSLATIONS = {
     privacyDesc: "No servers, no accounts. Your data lives right here in your browser.",
     continuityDesc1: "Use Export regularly to create a JSON backup.",
     continuityDesc2: "Save that file somewhere safe (Cloud, USB, Email).",
-    continuityDesc3: "Use Import to restore on new devices."
+    continuityDesc3: "Use Import to restore on new devices.",
+    today: "Today",
+    close: "Close",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+    chooseDate: "Choose a date",
+    closeDatePicker: "Close date picker",
+    aboutTitle: "About InspectIt",
+    aboutText: "InspectIt is a local-first property inspection tool designed to help you record structured inspection notes, condition details, and generate clean print-ready reports. It runs entirely in your browser with no accounts, no cloud storage, and no automatic data sharing.",
+    howWorksTitle: "How InspectIt Works",
+    howWorksText: "InspectIt follows a structured workflow:",
+    step1Title: "Create Inspection Profile",
+    step1Text: "Enter property or inspection details.",
+    step2Title: "Add Inspection Sections",
+    step2Text: "Organise inspection categories (e.g., Rooms, Exterior, Utilities, Condition Areas).",
+    step3Title: "Record Findings",
+    step3Text: "Add notes, condition descriptions, and relevant details for each section.",
+    step4Title: "Review Overview",
+    step4Text: "Confirm entries and inspection completeness.",
+    step5Title: "Preview & Print",
+    step5Text: "Generate a clean, print-ready inspection report.",
+    step6Title: "Export a Backup",
+    step6Text: "Export a JSON backup regularly, especially after major updates.",
+    dataPrivacyTitle: "Your Data & Privacy",
+    dataPrivacyText: "Your data is saved locally in this browser using secure local storage. This means:",
+    dataPrivacyList1: "Your data stays on this device",
+    dataPrivacyList2: "Clearing browser data can remove inspection records",
+    dataPrivacyList3: "Incognito/private mode will not retain data",
+    dataPrivacyList4: "Data does not automatically sync across devices",
+    backupRestoreTitle: "Backup & Restore",
+    backupRestoreText1: "Export downloads a JSON backup of your current InspectIt data.",
+    backupRestoreText2: "Import restores a previously exported JSON file and replaces current app data.",
+    backupRestoreRoutine: "Recommended routine:",
+    backupRestoreList1: "Export weekly",
+    backupRestoreList2: "Export after major edits",
+    backupRestoreList3: "Store backups in two locations (e.g., Downloads + Drive/USB)",
+    buttonsExplainedTitle: "Buttons Explained",
+    buttonPreview: "Preview – Opens the print-ready inspection report.",
+    buttonPrint: "Print / Save PDF – Prints only the preview sheet. Choose “Save as PDF” to create a file.",
+    buttonExport: "Export – Downloads a JSON backup file.",
+    buttonImport: "Import – Restores data from a JSON backup file.",
+    storageKeysTitle: "Storage Keys (Advanced)",
+    appDataKey: "App data key:",
+    sharedProfileKey: "Shared profile key:",
+    notesLimitationsTitle: "Notes / Limitations",
+    limitationsList1: "InspectIt is an inspection documentation tool. Reports depend on the accuracy of the information entered.",
+    limitationsList2: "Use Export regularly to avoid data loss.",
+    supportTitle: "Support / Feedback",
+    supportText: "If something breaks, include: device + browser + steps to reproduce + expected vs actual behaviour.",
+    exportPackTitle: "Export Pack",
+    exportPackSubtitle: "Save, share, or back up your data.",
+    pdfPrintTitle: "PDF & Print",
+    createEmailDraft: "Create Email Draft",
+    jsonBackupTitle: "JSON Backup",
+    downloadJson: "Download JSON",
+    importJson: "Import JSON",
+    importWarning: "Warning: Import replaces current app data. Export first if unsure.",
+    emailSubject: "InspectIt Export Pack",
+    emailBody: "Attached: PDF export from InspectIt (please attach the downloaded PDF file).\n\nExports are generated locally on your device. No data is uploaded automatically.",
+    newSectionDefault: "New section",
+    sectionDefault: "Section",
+    newItemDefault: "New item",
+    itemDefault: "Item",
+    thisSection: "this section",
+    thisItem: "this item",
+    deleteSectionConfirm: "Delete “{0}”? This removes it from the checklist template too.",
+    deleteItemConfirm: "Delete item “{0}”? This removes it from the checklist template too.",
+    importFailed: "Import failed: ",
+    resetAppDataTitle: "Reset App Data",
+    resetAppDataMessage: "Reset Inspect-It data? This clears local storage for this app.",
+    noItemsYet: "No items yet — click “+ Item”.",
+    evidencePrefix: "Evidence: ",
+    inspectionReport: "Inspection Report",
+    unknownError: "Unknown error",
+    placeholderSection: "e.g., Garage, Guest Room...",
+    placeholderItem: "e.g., Ceiling light, Radiator..."
   },
   de: {
     profile: "Profil",
@@ -586,6 +692,8 @@ const TRANSLATIONS = {
     savedInspections: "Gespeicherte Inspektionen",
     noSavedInspections: "Noch keine gespeicherten Inspektionen.",
     action: "Aktion",
+    view: "Ansehen",
+    edit: "Bearbeiten",
     delete: "Löschen",
     printSavePdf: "Drucken / PDF speichern",
     printPreview: "Druckvorschau",
@@ -635,7 +743,7 @@ const TRANSLATIONS = {
     save: "Speichern",
     saveInspection: "Inspektion speichern",
     checklistHint: "• Fügen Sie Abschnitte/Elemente hinzu, wenn Ihr Zuhause Extras hat (Keller, Gästebad usw.)",
-    contextHint: "Kontext: Schlüsselübergabe, Zählerstände, Vereinbarungen usw.",
+    contextHint: "Kontext: Schlüsselübergabe, Zählerstände, Vereinbarungen usw. (was Sie sehen)",
     selectDate: "Datum wählen",
     moveIn: "Einzug",
     moveOut: "Auszug",
@@ -652,7 +760,82 @@ const TRANSLATIONS = {
     privacyDesc: "Keine Server, keine Konten. Ihre Daten bleiben direkt hier in Ihrem Browser.",
     continuityDesc1: "Nutzen Sie regelmäßig Export, um ein JSON-Backup zu erstellen.",
     continuityDesc2: "Speichern Sie die Datei sicher (Cloud, USB, E-Mail).",
-    continuityDesc3: "Nutzen Sie Import, um Daten auf neuen Geräten wiederherzustellen."
+    continuityDesc3: "Nutzen Sie Import, um Daten auf neuen Geräten wiederherzustellen.",
+    today: "Heute",
+    close: "Schließen",
+    previousMonth: "Vorheriger Monat",
+    nextMonth: "Nächster Monat",
+    chooseDate: "Datum wählen",
+    closeDatePicker: "Datumsauswahl schließen",
+    aboutTitle: "Über InspectIt",
+    aboutText: "InspectIt ist ein 'Local-First' Inspektionstool, das Ihnen hilft, strukturierte Notizen und Zustandsdetails zu erfassen und saubere Berichte zu erstellen. Es läuft vollständig in Ihrem Browser – ohne Accounts, ohne Cloud und ohne automatische Datenspeicherung.",
+    howWorksTitle: "Wie InspectIt funktioniert",
+    howWorksText: "InspectIt folgt einem strukturierten Ablauf:",
+    step1Title: "Inspektionsprofil erstellen",
+    step1Text: "Geben Sie Immobilien- oder Inspektionsdetails ein.",
+    step2Title: "Inspektionsabschnitte hinzufügen",
+    step2Text: "Organisieren Sie Kategorien (z. B. Räume, Außenbereich, Versorgung).",
+    step3Title: "Ergebnisse erfassen",
+    step3Text: "Fügen Sie Notizen, Zustandsbeschreibungen und Details hinzu.",
+    step4Title: "Übersicht prüfen",
+    step4Text: "Bestätigen Sie Einträge und Vollständigkeit.",
+    step5Title: "Vorschau & Drucken",
+    step5Text: "Erstellen Sie einen sauberen, druckfertigen Bericht.",
+    step6Title: "Backup exportieren",
+    step6Text: "Exportieren Sie regelmäßig ein JSON-Backup.",
+    dataPrivacyTitle: "Ihre Daten & Datenschutz",
+    dataPrivacyText: "Ihre Daten werden lokal in diesem Browser gespeichert. Das bedeutet:",
+    dataPrivacyList1: "Ihre Daten bleiben auf diesem Gerät",
+    dataPrivacyList2: "Das Löschen von Browserdaten kann Datensätze entfernen",
+    dataPrivacyList3: "Inkognito/Privatmodus speichert keine Daten",
+    dataPrivacyList4: "Daten werden nicht automatisch synchronisiert",
+    backupRestoreTitle: "Backup & Wiederherstellung",
+    backupRestoreText1: "Export lädt ein JSON-Backup Ihrer aktuellen Daten herunter.",
+    backupRestoreText2: "Import stellt eine zuvor exportierte Datei wieder her und ersetzt aktuelle Daten.",
+    backupRestoreRoutine: "Empfohlene Routine:",
+    backupRestoreList1: "Wöchentlich exportieren",
+    backupRestoreList2: "Nach größeren Änderungen exportieren",
+    backupRestoreList3: "Backups an zwei Orten speichern (Cloud, USB, E-Mail)",
+    buttonsExplainedTitle: "Tasten erklärt",
+    buttonPreview: "Vorschau – Öffnet den druckfertigen Bericht.",
+    buttonPrint: "Drucken / PDF – Druckt nur die Vorschau. Wählen Sie 'Als PDF speichern'.",
+    buttonExport: "Export – Lädt ein JSON-Backup herunter.",
+    buttonImport: "Import – Stellt Daten aus einem Backup wieder her.",
+    storageKeysTitle: "Speicherschlüssel (Erweitert)",
+    appDataKey: "App-Daten-Schlüssel:",
+    sharedProfileKey: "Geteilter Profil-Schlüssel:",
+    notesLimitationsTitle: "Hinweise / Einschränkungen",
+    limitationsList1: "InspectIt ist ein Dokumentationstool. Berichte hängen von der Genauigkeit der Eingaben ab.",
+    limitationsList2: "Nutzen Sie Export regelmäßig, um Datenverlust zu vermeiden.",
+    supportTitle: "Support / Feedback",
+    supportText: "Wenn etwas nicht funktioniert, geben Sie bitte Gerät + Browser + Schritte zur Reproduktion an.",
+    exportPackTitle: "Export-Paket",
+    exportPackSubtitle: "Speichern, teilen oder sichern Sie Ihre Daten.",
+    pdfPrintTitle: "PDF & Drucken",
+    createEmailDraft: "E-Mail-Entwurf erstellen",
+    jsonBackupTitle: "JSON-Backup",
+    downloadJson: "JSON herunterladen",
+    importJson: "JSON importieren",
+    importWarning: "Warnung: Import ersetzt aktuelle App-Daten. Exportieren Sie zuerst, wenn Sie unsicher sind.",
+    emailSubject: "InspectIt Export-Paket",
+    emailBody: "Anbei: PDF-Export von InspectIt (bitte die heruntergeladene PDF-Datei anhängen).\n\nExporte werden lokal auf Ihrem Gerät erstellt. Es werden keine Daten automatisch hochgeladen.",
+    newSectionDefault: "Neuer Abschnitt",
+    sectionDefault: "Abschnitt",
+    newItemDefault: "Neues Element",
+    itemDefault: "Element",
+    thisSection: "diesen Abschnitt",
+    thisItem: "dieses Element",
+    deleteSectionConfirm: "“{0}” löschen? Dies entfernt es auch aus der Vorlage.",
+    deleteItemConfirm: "Element “{0}” löschen? Dies entfernt es auch aus der Vorlage.",
+    importFailed: "Import fehlgeschlagen: ",
+    resetAppDataTitle: "App-Daten zurücksetzen",
+    resetAppDataMessage: "Inspect-It-Daten zurücksetzen? Dies löscht den lokalen Speicher für diese App.",
+    noItemsYet: "Noch keine Elemente — klicke “+ Element”." ,
+    evidencePrefix: "Beweis: ",
+    inspectionReport: "Inspektionsbericht",
+    unknownError: "Unbekannter Fehler",
+    placeholderSection: "z.B. Garage, Gästezimmer...",
+    placeholderItem: "z.B. Deckenleuchte, Heizkörper..."
   }
 };
 
@@ -692,116 +875,104 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
         <div className="p-6 overflow-y-auto space-y-6 bg-white">
           {/* 1) About InspectIt */}
           <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">About InspectIt</h3>
-            <p className="text-sm text-neutral-700 leading-relaxed">
-              InspectIt is a local-first property inspection tool designed to help you record structured inspection
-              notes, condition details, and generate clean print-ready reports. It runs entirely in your browser with
-              no accounts, no cloud storage, and no automatic data sharing.
-            </p>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("aboutTitle")}</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed">{t("aboutText")}</p>
           </div>
 
           {/* 2) How InspectIt Works */}
           <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">How InspectIt Works</h3>
-            <p className="text-sm text-neutral-700 leading-relaxed mb-2">InspectIt follows a structured workflow:</p>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("howWorksTitle")}</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed mb-2">{t("howWorksText")}</p>
             <ol className="text-sm text-neutral-700 space-y-2 list-decimal list-inside">
               <li>
-                <strong>Create Inspection Profile</strong>
+                <strong>{t("step1Title")}</strong>
                 <br />
-                Enter property or inspection details.
+                {t("step1Text")}
               </li>
               <li>
-                <strong>Add Inspection Sections</strong>
+                <strong>{t("step2Title")}</strong>
                 <br />
-                Organise inspection categories (e.g., Rooms, Exterior, Utilities, Condition Areas).
+                {t("step2Text")}
               </li>
               <li>
-                <strong>Record Findings</strong>
+                <strong>{t("step3Title")}</strong>
                 <br />
-                Add notes, condition descriptions, and relevant details for each section.
+                {t("step3Text")}
               </li>
               <li>
-                <strong>Review Overview</strong>
+                <strong>{t("step4Title")}</strong>
                 <br />
-                Confirm entries and inspection completeness.
+                {t("step4Text")}
               </li>
               <li>
-                <strong>Preview & Print</strong>
+                <strong>{t("step5Title")}</strong>
                 <br />
-                Generate a clean, print-ready inspection report.
+                {t("step5Text")}
               </li>
               <li>
-                <strong>Export a Backup</strong>
+                <strong>{t("step6Title")}</strong>
                 <br />
-                Export a JSON backup regularly, especially after major updates.
+                {t("step6Text")}
               </li>
             </ol>
           </div>
 
           {/* 3) Your Data & Privacy */}
           <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">Your Data & Privacy</h3>
-            <p className="text-sm text-neutral-700 leading-relaxed mb-2">
-              Your data is saved locally in this browser using secure local storage. This means:
-            </p>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("dataPrivacyTitle")}</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed mb-2">{t("dataPrivacyText")}</p>
             <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
-              <li>Your data stays on this device</li>
-              <li>Clearing browser data can remove inspection records</li>
-              <li>Incognito/private mode will not retain data</li>
-              <li>Data does not automatically sync across devices</li>
+              <li>{t("dataPrivacyList1")}</li>
+              <li>{t("dataPrivacyList2")}</li>
+              <li>{t("dataPrivacyList3")}</li>
+              <li>{t("dataPrivacyList4")}</li>
             </ul>
           </div>
 
           {/* 4) Backup & Restore */}
           <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">Backup & Restore</h3>
-            <p className="text-sm text-neutral-700 leading-relaxed mb-2">
-              <strong>Export</strong> downloads a JSON backup of your current InspectIt data.
-            </p>
-            <p className="text-sm text-neutral-700 leading-relaxed mb-2">
-              <strong>Import</strong> restores a previously exported JSON file and replaces current app data.
-            </p>
-            <p className="text-sm text-neutral-700 leading-relaxed">Recommended routine:</p>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("backupRestoreTitle")}</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed mb-2">{t("backupRestoreText1")}</p>
+            <p className="text-sm text-neutral-700 leading-relaxed mb-2">{t("backupRestoreText2")}</p>
+            <p className="text-sm text-neutral-700 leading-relaxed">{t("backupRestoreRoutine")}</p>
             <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
-              <li>Export weekly</li>
-              <li>Export after major edits</li>
-              <li>Store backups in two locations (e.g., Downloads + Drive/USB)</li>
+              <li>{t("backupRestoreList1")}</li>
+              <li>{t("backupRestoreList2")}</li>
+              <li>{t("backupRestoreList3")}</li>
             </ul>
           </div>
 
           {/* 5) Buttons Explained */}
           <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">Buttons Explained</h3>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("buttonsExplainedTitle")}</h3>
             <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
-              <li><strong>Preview</strong> – Opens the print-ready inspection report.</li>
-              <li><strong>Print / Save PDF</strong> – Prints only the preview sheet. Choose “Save as PDF” to create a file.</li>
-              <li><strong>Export</strong> – Downloads a JSON backup file.</li>
-              <li><strong>Import</strong> – Restores data from a JSON backup file.</li>
+              <li>{t("buttonPreview")}</li>
+              <li>{t("buttonPrint")}</li>
+              <li>{t("buttonExport")}</li>
+              <li>{t("buttonImport")}</li>
             </ul>
           </div>
 
           {/* 6) Storage Keys (Advanced) */}
           <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">Storage Keys (Advanced)</h3>
-            <p className="text-sm text-neutral-700 leading-relaxed">App data key: <code className="font-mono text-xs bg-white border border-neutral-300 rounded px-2 py-1">{KEY}</code></p>
-            <p className="text-sm text-neutral-700 leading-relaxed mt-1">Shared profile key: <code className="font-mono text-xs bg-white border border-neutral-300 rounded px-2 py-1">{PROFILE_KEY}</code></p>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("storageKeysTitle")}</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed">{t("appDataKey")} <code className="font-mono text-xs bg-white border border-neutral-300 rounded px-2 py-1">{KEY}</code></p>
+            <p className="text-sm text-neutral-700 leading-relaxed mt-1">{t("sharedProfileKey")} <code className="font-mono text-xs bg-white border border-neutral-300 rounded px-2 py-1">{PROFILE_KEY}</code></p>
           </div>
 
           {/* 7) Notes / Limitations */}
           <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">Notes / Limitations</h3>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("notesLimitationsTitle")}</h3>
             <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
-              <li>InspectIt is an inspection documentation tool. Reports depend on the accuracy of the information entered.</li>
-              <li>Use Export regularly to avoid data loss.</li>
+              <li>{t("limitationsList1")}</li>
+              <li>{t("limitationsList2")}</li>
             </ul>
           </div>
 
           {/* 8) Support / Feedback */}
           <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">Support / Feedback</h3>
-            <p className="text-sm text-neutral-700 leading-relaxed">
-              If something breaks, include: device + browser + steps to reproduce + expected vs actual behaviour.
-            </p>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("supportTitle")}</h3>
+            <p className="text-sm text-neutral-700 leading-relaxed">{t("supportText")}</p>
           </div>
         </div>
 
@@ -923,11 +1094,8 @@ function ImportExportModal({ open, onClose, onImport, onExport, onPrint, languag
   if (!open) return null;
   const t = (key) => TRANSLATIONS[language]?.[key] || TRANSLATIONS["en"][key] || key;
 
-  const emailSubject = encodeURIComponent(`InspectIt Export Pack – ${new Date().toISOString().slice(0, 10)}`);
-  const emailBody = encodeURIComponent(
-    "Attached: PDF export from InspectIt (please attach the downloaded PDF file).\n\n" +
-    "Exports are generated locally on your device. No data is uploaded automatically."
-  );
+  const emailSubject = encodeURIComponent(`${t("emailSubject")} – ${new Date().toISOString().slice(0, 10)}`);
+  const emailBody = encodeURIComponent(t("emailBody"));
   const mailtoLink = `mailto:?subject=${emailSubject}&body=${emailBody}`;
 
   return (
@@ -943,9 +1111,9 @@ function ImportExportModal({ open, onClose, onImport, onExport, onPrint, languag
         <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase transform -rotate-1">
-              Export Pack
+              {t("exportPackTitle")}
             </h2>
-            <p className="text-neutral-900 font-bold mt-1 text-sm">Save, share, or back up your data.</p>
+            <p className="text-neutral-900 font-bold mt-1 text-sm">{t("exportPackSubtitle")}</p>
           </div>
           <button
             type="button"
@@ -964,16 +1132,13 @@ function ImportExportModal({ open, onClose, onImport, onExport, onPrint, languag
              <div className="absolute -top-3 -left-3 bg-indigo-400 text-white border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform -rotate-3 group-hover:rotate-0 transition-transform">
               PDF
             </div>
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">PDF & Print</h3>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("pdfPrintTitle")}</h3>
             <div className="flex flex-col gap-2 mt-4">
-                <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] transition-colors flex items-center justify-between" onClick={onPrint}>
-                    <span>Download PDF</span>
-                </button>
                 <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] transition-colors" onClick={onPrint}>
-                    Print / Save PDF
+                    {t("printSavePdf")}
                 </button>
                 <a href={mailtoLink} className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] transition-colors block">
-                    Create Email Draft
+                    {t("createEmailDraft")}
                 </a>
             </div>
           </div>
@@ -983,17 +1148,17 @@ function ImportExportModal({ open, onClose, onImport, onExport, onPrint, languag
             <div className="absolute -top-3 -right-3 bg-emerald-400 text-neutral-900 border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform rotate-2 group-hover:rotate-0 transition-transform">
               JSON
             </div>
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">JSON Backup</h3>
+            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("jsonBackupTitle")}</h3>
             <div className="flex flex-col gap-2 mt-4">
               <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:bg-emerald-600 hover:border-emerald-700 active:translate-y-1 active:shadow-sm transition-all" onClick={onExport}>
-                Download JSON
+                {t("downloadJson")}
               </button>
               <div className="pt-2 border-t border-neutral-200 mt-2">
                   <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-200 text-neutral-700 bg-white hover:bg-emerald-100 hover:border-emerald-400 transition-colors" onClick={onImport}>
-                    Import JSON
+                    {t("importJson")}
                   </button>
                   <p className="text-xs text-neutral-500 mt-2 px-1">
-                    Warning: Import replaces current app data. Export first if unsure.
+                    {t("importWarning")}
                   </p>
               </div>
             </div>
@@ -1015,13 +1180,71 @@ function ImportExportModal({ open, onClose, onImport, onExport, onPrint, languag
 // data model
 // ---------------------------
 
-function defaultTemplate() {
+const TEMPLATES = {
+  en: [
+    { title: "Entrance / Hall", items: ["Door & lock", "Walls/paint", "Flooring", "Lights/switches"] },
+    { title: "Living / Bedroom", items: ["Walls/paint", "Flooring", "Windows/frames", "Heating/radiator", "Curtains/blinds"] },
+    { title: "Kitchen", items: ["Cabinets/countertop", "Sink & taps", "Appliances (if included)", "Tiles/splashback", "Ventilation"] },
+    { title: "Bathroom", items: ["Bath/shower", "Tiles/grout", "Toilet", "Sink & taps", "Ventilation"] },
+    { title: "Utilities / Electrical", items: ["Sockets", "Light fixtures", "Water shutoff", "Smoke detector"] },
+    { title: "Windows / Exterior", items: ["Windows open/close", "Seals", "Balcony/terrace (if any)", "Mailbox/keys"] },
+  ],
+  de: [
+    { title: "Eingang / Flur", items: ["Tür & Schloss", "Wände/Anstrich", "Bodenbelag", "Licht/Schalter"] },
+    { title: "Wohnen / Schlafzimmer", items: ["Wände/Anstrich", "Bodenbelag", "Fenster/Rahmen", "Heizung/Heizkörper", "Vorhänge/Jalousien"] },
+    { title: "Küche", items: ["Schränke/Arbeitsplatte", "Spüle & Armaturen", "Geräte (falls vorhanden)", "Fliesen/Spritzschutz", "Lüftung"] },
+    { title: "Badezimmer", items: ["Bad/Dusche", "Fliesen/Fugen", "Toilette", "Waschbecken & Armaturen", "Lüftung"] },
+    { title: "Versorgung / Elektrik", items: ["Steckdosen", "Beleuchtung", "Wasserabsperrung", "Rauchmelder"] },
+    { title: "Fenster / Außenbereich", items: ["Fenster öffnen/schließen", "Dichtungen", "Balkon/Terrasse (falls vorh.)", "Briefkasten/Schlüssel"] },
+  ]
+};
+
+function translateContent(data, targetLang) {
+  const sourceLang = targetLang === "en" ? "de" : "en";
+  const sourceTpl = TEMPLATES[sourceLang];
+  const targetTpl = TEMPLATES[targetLang];
+
+  if (!sourceTpl || !targetTpl) return data.sections;
+
+  return (data.sections || []).map((s) => {
+    let nextTitle = s.title;
+    let targetSec = null;
+    let sourceSecItems = [];
+
+    // Find section by title in source language
+    const sourceSecIndex = sourceTpl.findIndex((x) => x.title === s.title);
+    if (sourceSecIndex !== -1) {
+      targetSec = targetTpl[sourceSecIndex];
+      if (targetSec) {
+        nextTitle = targetSec.title;
+        sourceSecItems = sourceTpl[sourceSecIndex].items;
+      }
+    }
+
+    const nextItems = (s.items || []).map((it) => {
+      let nextLabel = it.label;
+      if (targetSec && sourceSecItems.length > 0) {
+        const itemIndex = sourceSecItems.indexOf(it.label);
+        if (itemIndex !== -1 && targetSec.items[itemIndex]) {
+          nextLabel = targetSec.items[itemIndex];
+        }
+      }
+      return { ...it, label: nextLabel };
+    });
+
+    return { ...s, title: nextTitle, items: nextItems };
+  });
+}
+
+function defaultTemplate(lang = "en") {
   const mkItem = (label) => ({ id: uid("i"), label, condition: "ok" });
   const mkSection = (title, items) => ({
     id: uid("s"),
     title,
     items: items.map(mkItem),
   });
+
+  const sections = TEMPLATES[lang] || TEMPLATES.en;
 
   return {
     name: "Default Inspection",
@@ -1033,6 +1256,7 @@ function defaultTemplate() {
       mkSection("Utilities / Electrical", ["Sockets", "Light fixtures", "Water shutoff", "Smoke detector"]),
       mkSection("Windows / Exterior", ["Windows open/close", "Seals", "Balcony/terrace (if any)", "Mailbox/keys"]),
     ],
+    sections: sections.map(s => mkSection(s.title, s.items)),
   };
 }
 
@@ -1182,6 +1406,22 @@ export default function App() {
 
   const t = (key) => TRANSLATIONS[language]?.[key] || TRANSLATIONS["en"][key] || key;
 
+  // Auto-translate content when language toggles
+  useEffect(() => {
+    setDraft((prev) => ({
+      ...prev,
+      sections: translateContent(prev, language),
+    }));
+
+    setState((prev) => {
+      const nextTemplate = {
+        ...prev.template,
+        sections: translateContent(prev.template, language),
+      };
+      return saveState({ ...prev, template: nextTemplate });
+    });
+  }, [language]);
+
   // draft
   const [draft, setDraft] = useState(() => {
     const t = loadState().template;
@@ -1251,7 +1491,7 @@ export default function App() {
 
   function onAddSectionSubmit(title) {
     const sectionId = uid("s");
-    const nextTitle = String(title).trim() || "New section";
+    const nextTitle = String(title).trim() || t("newSectionDefault");
 
     const nextTemplate = normalizeTemplate(state.template);
     nextTemplate.sections = [...(nextTemplate.sections || []), { id: sectionId, title: nextTitle, items: [] }];
@@ -1272,7 +1512,7 @@ export default function App() {
   function onRenameSectionSubmit(title) {
     const { sectionId, initialValue } = renameSectionState;
     if (!sectionId) return;
-    const nextTitle = String(title).trim() || initialValue || "Section";
+    const nextTitle = String(title).trim() || initialValue || t("sectionDefault");
 
     const nextTemplate = normalizeTemplate(state.template);
     nextTemplate.sections = (nextTemplate.sections || []).map((s) => (s.id !== sectionId ? s : { ...s, title: nextTitle }));
@@ -1311,7 +1551,7 @@ export default function App() {
     const { sectionId } = addItemState;
     if (!sectionId) return;
     const itemId = uid("i");
-    const nextLabel = String(label).trim() || "New item";
+    const nextLabel = String(label).trim() || t("newItemDefault");
 
     // template
     const nextTemplate = normalizeTemplate(state.template);
@@ -1347,7 +1587,7 @@ export default function App() {
   function onRenameItemSubmit(label) {
     const { sectionId, itemId, initialValue } = renameItemState;
     if (!sectionId || !itemId) return;
-    const nextLabel = String(label).trim() || initialValue || "Item";
+    const nextLabel = String(label).trim() || initialValue || t("itemDefault");
 
     const nextTemplate = normalizeTemplate(state.template);
     nextTemplate.sections = (nextTemplate.sections || []).map((s) =>
@@ -1404,6 +1644,37 @@ export default function App() {
       ),
     }));
     setDeleteItemState({ open: false, sectionId: null, itemId: null });
+  }
+
+  function loadInspection(id, shouldScroll = true) {
+    const ins = state.inspections.find((x) => x.id === id);
+    if (!ins) return;
+
+    setDate(ins.date);
+    setInspectionType(ins.inspectionType);
+    setPropertyLabel(ins.propertyLabel);
+    setAddress(ins.address);
+    setOccupants(ins.occupants);
+    setNotes(ins.notes);
+    
+    setDraft({
+      date: ins.date,
+      inspectionType: ins.inspectionType,
+      propertyLabel: ins.propertyLabel,
+      address: ins.address,
+      occupants: ins.occupants,
+      notes: ins.notes,
+      sections: JSON.parse(JSON.stringify(ins.sections)),
+    });
+    
+    if (shouldScroll) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function onViewInspection(id) {
+    loadInspection(id, false);
+    setPreviewOpen(true);
   }
 
   function resetDraft() {
@@ -1499,7 +1770,7 @@ export default function App() {
         })
       );
     } catch (e) {
-      alert("Import failed: " + (e?.message || "unknown error"));
+      alert(t("importFailed") + (e?.message || t("unknownError")));
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -1522,7 +1793,19 @@ export default function App() {
     } catch {
       // ignore
     }
-    const fresh = loadState();
+    
+    // Re-initialize with the CURRENT language template
+    const freshTemplate = defaultTemplate(language);
+    const fresh = {
+      meta: {
+        appId: APP_ID,
+        version: APP_VERSION,
+        updatedAt: new Date().toISOString(),
+      },
+      template: freshTemplate,
+      inspections: [],
+    };
+
     setState(fresh);
     setPreviewOpen(false);
     setHelpOpen(false);
@@ -1535,7 +1818,7 @@ export default function App() {
     setNotes("");
 
     setDraft(
-      buildDraftFromTemplate(fresh.template, {
+      buildDraftFromTemplate(freshTemplate, {
         date: isoToday(),
         inspectionType: "move-in",
         propertyLabel: "",
@@ -1615,12 +1898,12 @@ export default function App() {
 
   const deleteSectionTitle = useMemo(() => {
     if (!deleteSectionState.sectionId) return "";
-    return (draft.sections || []).find((s) => s.id === deleteSectionState.sectionId)?.title || "this section";
+    return (draft.sections || []).find((s) => s.id === deleteSectionState.sectionId)?.title || t("thisSection");
   }, [deleteSectionState.sectionId, draft.sections]);
 
   const deleteItemLabel = useMemo(() => {
     if (!deleteItemState.sectionId || !deleteItemState.itemId) return "";
-    return (draft.sections || []).find((s) => s.id === deleteItemState.sectionId)?.items?.find((it) => it.id === deleteItemState.itemId)?.label || "this item";
+    return (draft.sections || []).find((s) => s.id === deleteItemState.sectionId)?.items?.find((it) => it.id === deleteItemState.itemId)?.label || t("thisItem");
   }, [deleteItemState.sectionId, deleteItemState.itemId, draft.sections]);
 
   return (
@@ -1653,6 +1936,7 @@ export default function App() {
         title={t("addSectionTitle")}
         inputLabel={t("sectionTitle")}
         placeholder="e.g., Garage, Guest Room..."
+        placeholder={t("placeholderSection")}
         submitLabel={t("addSection")}
       />
       <InputModal
@@ -1663,6 +1947,7 @@ export default function App() {
         title={t("addItemTitle")}
         inputLabel={t("itemLabel")}
         placeholder="e.g., Ceiling light, Radiator..."
+        placeholder={t("placeholderItem")}
         submitLabel={t("addItemTitle")}
       />
       <InputModal
@@ -1691,7 +1976,7 @@ export default function App() {
         onClose={() => setDeleteSectionState({ ...deleteSectionState, open: false })}
         onConfirm={onDeleteSectionConfirm}
         title={t("deleteSectionTitle")}
-        message={language === 'de' ? `“${deleteSectionTitle}” löschen? Dies entfernt es auch aus der Checklistenvorlage.` : `Delete “${deleteSectionTitle}”? This removes it from the checklist template too.`}
+        message={t_fmt(t("deleteSectionConfirm"), deleteSectionTitle)}
         confirmLabel={t("delete")}
         isDanger
       />
@@ -1701,7 +1986,7 @@ export default function App() {
         onClose={() => setDeleteItemState({ ...deleteItemState, open: false })}
         onConfirm={onDeleteItemConfirm}
         title={t("deleteItemTitle")}
-        message={language === 'de' ? `Element “${deleteItemLabel}” löschen? Dies entfernt es auch aus der Checklistenvorlage.` : `Delete item “${deleteItemLabel}”? This removes it from the checklist template too.`}
+        message={t_fmt(t("deleteItemConfirm"), deleteItemLabel)}
         confirmLabel={t("delete")}
         isDanger
       />
@@ -1710,9 +1995,9 @@ export default function App() {
         language={language}
         onClose={() => setResetConfirmOpen(false)}
         onConfirm={performReset}
-        title="Reset App Data"
-        message="Reset Inspect-It data? This clears local storage for this app."
-        confirmLabel="Reset"
+        title={t("resetAppDataTitle")}
+        message={t("resetAppDataMessage")}
+        confirmLabel={t("reset")}
         isDanger
       />
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} onReset={openResetConfirm} language={language} />
@@ -1908,7 +2193,7 @@ export default function App() {
 
                       <div className="mt-3 space-y-2">
                         {(s.items || []).length === 0 ? (
-                          <div className="text-sm text-neutral-600">No items yet — click “+ Item”.</div>
+                          <div className="text-sm text-neutral-600">{t("noItemsYet")}</div>
                         ) : null}
 
                         {(s.items || []).map((it) => (
@@ -1975,7 +2260,6 @@ export default function App() {
                       </div>
                     </div>
                   ))}
-                  ))}
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -2029,12 +2313,32 @@ export default function App() {
                         <td className="py-2 pr-2">{x.summary?.worn || 0}</td>
                         <td className="py-2 pr-2">{x.summary?.missing || 0}</td>
                         <td className="py-2 pr-2 text-right">
-                          <button
-                            className="px-3 py-1.5 rounded-xl bg-white border-2 border-neutral-900 hover:bg-[#D5FF00] text-neutral-900 font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px] transition-all"
-                            onClick={() => deleteInspection(x.id)}
-                          >
-                            {t("delete")}
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-900 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"
+                              onClick={() => onViewInspection(x.id)}
+                              title={t("view")}
+                            >
+                              <EyeIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-900 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"
+                              onClick={() => loadInspection(x.id)}
+                              title={t("edit")}
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border-2 border-neutral-900 bg-white hover:bg-red-100 text-red-900 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"
+                              onClick={() => deleteInspection(x.id)}
+                              title={t("delete")}
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -2077,7 +2381,7 @@ export default function App() {
                         alt="Inspect-It"
                         className="h-16 w-auto"
                       />
-                      <div className="text-sm text-neutral-700 mt-1">{t("inspection")} Report</div>
+                      <div className="text-sm text-neutral-700 mt-1">{t("inspectionReport")}</div>
                     </div>
                     <div className="text-sm text-neutral-700">{t("generated")}: {new Date().toLocaleString(language)}</div>
                   </div>
@@ -2140,7 +2444,7 @@ export default function App() {
                               <div>
                                 <div className="font-medium text-neutral-800">{it.label}</div>
                                 {it.note ? <div className="text-neutral-600 whitespace-pre-wrap">{it.note}</div> : null}
-                                {it.evidenceRef ? <div className="text-neutral-600">Evidence: {it.evidenceRef}</div> : null}
+                                {it.evidenceRef ? <div className="text-neutral-600">{t("evidencePrefix")}{it.evidenceRef}</div> : null}
                               </div>
                               <span className={`text-xs px-2 py-1 rounded-full border ${badgeClass(it.condition)}`}>
                                 {t(`condition_${it.condition}`) || "OK"}
