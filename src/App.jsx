@@ -382,7 +382,6 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
           />
 
           <div
-            className="fixed z-50 rounded-2xl bg-white border border-neutral-200 shadow-xl p-3"
             className="fixed z-50 rounded-2xl bg-white border-2 border-neutral-900 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] p-4"
             style={{ top: pos.top, left: pos.left, width: 340 }}
           >
@@ -1248,14 +1247,6 @@ function defaultTemplate(lang = "en") {
 
   return {
     name: "Default Inspection",
-    sections: [
-      mkSection("Entrance / Hall", ["Door & lock", "Walls/paint", "Flooring", "Lights/switches"]),
-      mkSection("Living / Bedroom", ["Walls/paint", "Flooring", "Windows/frames", "Heating/radiator", "Curtains/blinds"]),
-      mkSection("Kitchen", ["Cabinets/countertop", "Sink & taps", "Appliances (if included)", "Tiles/splashback", "Ventilation"]),
-      mkSection("Bathroom", ["Bath/shower", "Tiles/grout", "Toilet", "Sink & taps", "Ventilation"]),
-      mkSection("Utilities / Electrical", ["Sockets", "Light fixtures", "Water shutoff", "Smoke detector"]),
-      mkSection("Windows / Exterior", ["Windows open/close", "Seals", "Balcony/terrace (if any)", "Mailbox/keys"]),
-    ],
     sections: sections.map(s => mkSection(s.title, s.items)),
   };
 }
@@ -1833,9 +1824,7 @@ export default function App() {
   // -------- print scoping (print ONLY preview sheet) --------
   const PRINT_SCOPE_CSS = `
     @media print {
-      body * { visibility: hidden !important; }
-      #inspectit-print-preview, #inspectit-print-preview * { visibility: visible !important; }
-      #inspectit-print-preview { position: absolute !important; left: 0; top: 0; width: 100%; }
+      @page { margin: 10mm; }
     }
   `;
 
@@ -2016,7 +2005,7 @@ export default function App() {
 
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between print:hidden">
           <div>
             <div className="flex justify-center items-center">
               <img
@@ -2070,7 +2059,7 @@ export default function App() {
         </div>
 
         {/* Main grid */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 print:hidden">
           {/* Draft card */}
           <div className="flex flex-col gap-3">
             <div className="flex justify-end">
@@ -2273,7 +2262,7 @@ export default function App() {
           </div>
         </div>
         {/* Saved inspections */}
-        <div className={`mt-4 ${card}`}>
+        <div className={`mt-4 ${card} print:hidden`}>
           <div className={cardPad}>
             <div className="font-semibold text-neutral-800">{t("savedInspections")}</div>
             {(state.inspections || []).length === 0 ? (
@@ -2351,12 +2340,12 @@ export default function App() {
 
         {/* Preview modal */}
         {previewOpen ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:static">
-            <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity" onClick={() => setPreviewOpen(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:block print:p-0 print:static">
+            <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity print:hidden" onClick={() => setPreviewOpen(false)} />
 
-            <div className="relative w-full max-w-5xl max-h-[90vh] bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden print:overflow-visible print:static flex flex-col">
+            <div className="relative w-full max-w-5xl max-h-[90vh] bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden print:overflow-visible print:static flex flex-col print:border-none print:shadow-none print:max-h-none">
               {/* Header */}
-              <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4">
+              <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4 print:hidden">
                 <div>
                   <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase transform -rotate-1">
                     {t("printPreview")}
@@ -2372,8 +2361,8 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto bg-white">
-                <div id="inspectit-print-preview" className="p-8">
+              <div className="flex-1 overflow-y-auto bg-white print:overflow-visible">
+                <div id="inspectit-print-preview" className="p-8 print:p-0">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <img
@@ -2474,7 +2463,7 @@ export default function App() {
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t-4 border-neutral-900 bg-neutral-100 flex items-center justify-end gap-4">
+              <div className="p-4 border-t-4 border-neutral-900 bg-neutral-100 flex items-center justify-end gap-4 print:hidden">
                 <button
                   type="button"
                   className="px-6 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[4px] active:shadow-none transition-all"
