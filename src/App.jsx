@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import JSZip from "jszip";
+import html2pdf from "html2pdf.js";
 
 import headingImage from "./assets/inspectit-heading.png";
 
@@ -2016,9 +2017,54 @@ export default function App() {
     }
   }
 
+  async function cleanOrphanedPhotos(inspections) {
+    const cleanedInspections = [];
+    for (const ins of inspections) {
+      const cleanedSections = [];
+      for (const sec of ins.sections || []) {
+        const cleanedItems = [];
+        for (const item of sec.items || []) {
+          const cleanedPhotos = [];
+          for (const photo of item.photos || []) {
+            try {
+              const blob = await getPhotoBlob(photo.storageKey);
+              if (blob) {
+                cleanedPhotos.push(photo);
+              }
+            } catch (err) {
+              // Skip photo if blob check fails
+            }
+          }
+          cleanedItems.push({ ...item, photos: cleanedPhotos });
+        }
+        cleanedSections.push({ ...sec, items: cleanedItems });
+      }
+      cleanedInspections.push({ ...ins, sections: cleanedSections });
+    }
+    return cleanedInspections;
+  }
+  async function generateReportPdf() {
+    const element = document.getElementById('pdf-report-content');
+    if (!element) return null;
+    const options = {
+      margin: 10,
+      image: { type: 'jpeg', quality: 0.9 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    try {
+      const pdfBlob = await html2pdf().set(options).from(element).outputPdf('blob');
+      return pdfBlob;
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      return null;
+    }
+  }
+
   async function downloadInspectionPack(inspection) {
     try {
       const zip = new JSZip();
+      const pdfBlob = await generateReportPdf();
       const photoMap = {};
       let totalPhotos = 0;
 
@@ -2080,6 +2126,10 @@ export default function App() {
 
       // Add inspection.json to the zip
       zip.file("inspection.json", JSON.stringify(inspectionExport, null, 2));
+
+      if (pdfBlob) {
+        zip.file("inspection-report.pdf", pdfBlob);
+      }
 
       // Generate zip blob and download
       const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -2179,8 +2229,10 @@ export default function App() {
 
       if (!incoming?.template || !Array.isArray(incoming?.inspections)) throw new Error("Invalid import file");
 
+      const cleanedInspections = await cleanOrphanedPhotos(incoming.inspections);
+
       setProfile(parsed?.profile || profile);
-      setState(saveState({ ...incoming, template: normalizeTemplate(incoming.template) }));
+      setState(saveState({ ...incoming, inspections: cleanedInspections, template: normalizeTemplate(incoming.template) }));
       setDraft(
         buildDraftFromTemplate(incoming.template, {
           date,
@@ -2331,6 +2383,101 @@ export default function App() {
       <style>{GLOBAL_CSS}</style>
       {previewOpen ? <style>{PRINT_SCOPE_CSS}</style> : null}
 
+      <div style={{ display: 'none' }}>
+        <div id="pdf-report-content" className="p-8 print:p-0">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <img
+                src={headingImage}
+                alt="Inspect-It"
+                className="h-40 w-auto"
+              />
+            </div>
+            <div className="text-sm text-neutral-700">{t("generated")}: {new Date().toLocaleString(language)}</div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div className="rounded-2xl border border-neutral-200 p-4">
+              <div className="text-neutral-600">{t("preparedBy")}</div>
+              <div className="mt-1 font-semibold text-neutral-800">{profile.user || "-"}</div>
+              <div className="text-xs text-neutral-600 mt-1">{profile.org || "-"}</div>
+            </div>
+            <div className="rounded-2xl border border-neutral-200 p-4">
+              <div className="text-neutral-600">{t("inspection")}</div>
+              <div className="mt-1">
+                {t("date")}: <span className="font-semibold text-neutral-800">{date}</span>
+              </div>
+              <div className="mt-1">
+                {t("type")}: <span className="font-semibold text-neutral-800">{inspectionType}</span>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-neutral-200 p-4">
+              <div className="text-neutral-600">{t("property")}</div>
+              <div className="mt-1">
+                {t("label")}: <span className="font-semibold text-neutral-800">{propertyLabel || "-"}</span>
+              </div>
+              <div className="mt-1">
+                {t("occupants")}: <span className="font-semibold text-neutral-800">{occupants || "-"}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 text-sm">
+            <div className="text-neutral-600">{t("address")}</div>
+            <div className="font-semibold text-neutral-800">{address || "-"}</div>
+          </div>
+
+          {notes ? (
+            <div className="mt-4 text-sm">
+              <div className="font-semibold text-neutral-800">{t("generalNotes")}</div>
+              <div className="text-neutral-700 whitespace-pre-wrap">{notes}</div>
+            </div>
+          ) : null}
+
+          <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm">
+            <div className="font-semibold text-neutral-800">{t("summary")}</div>
+            <div className="mt-1 text-neutral-700">
+              {t("items")}: {totals.total} • {t("damaged")}: {totals.damaged} • {t("worn")}: {totals.worn} • {t("missing")}: {totals.missing}
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {(draft.sections || []).map((sec) => (
+              <div key={sec.id} className="rounded-2xl border border-neutral-200 p-4">
+                <div className="font-semibold text-neutral-800">{sec.title}</div>
+                <div className="mt-2 space-y-2">
+                  {sec.items.map((item) => (
+                    <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg bg-white border border-neutral-100">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <div className={`w-3 h-3 rounded-full ${item.condition === "ok" ? "bg-emerald-400" : item.condition === "worn" ? "bg-amber-400" : item.condition === "damaged" ? "bg-red-500" : item.condition === "missing" ? "bg-red-700" : "bg-neutral-300"}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-neutral-800">{item.label}</div>
+                        {item.note ? <div className="mt-1 text-sm text-neutral-600">{item.note}</div> : null}
+                        {item.evidenceRef ? <div className="mt-1 text-xs text-neutral-500">{t("evidence")}: {item.evidenceRef}</div> : null}
+                        {item.photos && item.photos.length > 0 ? (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {item.photos.map((photo) => (
+                              <div key={photo.id} className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded">
+                                📷 {photo.caption || t("photo")}
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 text-xs text-neutral-600">
+            {t("storageKeys")}: <span className="font-mono">{KEY}</span> • <span className="font-mono">{PROFILE_KEY}</span>
+          </div>
+        </div>
+      </div>
+
       <ImportExportModal
         open={importExportOpen}
         language={language}
@@ -2466,7 +2613,6 @@ export default function App() {
               type="button"
               title="Help"
               onClick={() => setHelpOpen(true)}
-              className="print:hidden h-14 w-14 rounded-full bg-neutral-600 text-white shadow-lg hover:shadow-xl hover:bg-neutral-500 transition-all flex items-center justify-center font-bold text-2xl"
               className="print:hidden h-10 w-10 rounded-lg bg-neutral-600 text-white shadow hover:bg-neutral-500 transition-all flex items-center justify-center font-bold text-lg"
               aria-label="Help"
             >
