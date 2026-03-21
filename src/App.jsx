@@ -726,6 +726,7 @@ const TRANSLATIONS = {
     confirm: "Confirm",
     save: "Save",
     saveInspection: "Save inspection",
+    updateInspection: "Update inspection",
     checklistHint: "• Add sections/items if your home has extras (basement, guest bathroom, etc.)",
     contextHint: "Context: keys received, meter readings, agreements, etc. (what you see)",
     selectDate: "Select date",
@@ -892,6 +893,7 @@ const TRANSLATIONS = {
     confirm: "Bestätigen",
     save: "Speichern",
     saveInspection: "Inspektion speichern",
+    updateInspection: "Inspektion aktualisieren",
     checklistHint: "• Fügen Sie Abschnitte/Elemente hinzu, wenn Ihr Zuhause Extras hat (Keller, Gästebad usw.)",
     contextHint: "Kontext: Schlüsselübergabe, Zählerstände, Vereinbarungen usw. (was Sie sehen)",
     selectDate: "Datum wählen",
@@ -1567,6 +1569,8 @@ export default function App() {
   const [importExportOpen, setImportExportOpen] = useState(false);
   const [photoViewerState, setPhotoViewerState] = useState({ open: false, url: null, caption: "" });
   const [collapsedSections, setCollapsedSections] = useState(new Set());
+  const [showStatusDetails, setShowStatusDetails] = useState(false);
+  const [loadedInspectionId, setLoadedInspectionId] = useState(null);
 
   const fileRef = useRef(null);
 
@@ -1656,15 +1660,32 @@ export default function App() {
     let damaged = 0;
     let worn = 0;
     let missing = 0;
+    let ok = 0;
+    let na = 0;
+    let evidenceMissing = 0;
+    const sectionsNeedingWork = [];
+
     for (const s of draft.sections || []) {
+      let sIssues = 0;
       for (const it of s.items || []) {
         total++;
-        if (it.condition === "damaged") damaged++;
+        if (it.condition === "damaged") { damaged++; sIssues++; }
         if (it.condition === "worn") worn++;
-        if (it.condition === "missing") missing++;
+        if (it.condition === "missing") { missing++; sIssues++; }
+        if (it.condition === "ok") ok++;
+        if (it.condition === "n/a") na++;
+
+        // Flag issues without photos
+        if (["damaged", "missing"].includes(it.condition) && (!it.photos || it.photos.length === 0)) {
+          evidenceMissing++;
+        }
+      }
+      if (sIssues > 0) {
+        sectionsNeedingWork.push(s.title);
       }
     }
-    return { total, damaged, worn, missing };
+    const score = total === 0 ? 100 : Math.round(((ok + na + worn) / total) * 100);
+    return { total, damaged, worn, missing, ok, na, evidenceMissing, sectionsNeedingWork, score };
   }, [draft.sections]);
 
   function updateItem(sectionId, itemId, patch) {
@@ -1856,6 +1877,7 @@ export default function App() {
   function loadInspection(id, shouldScroll = true) {
     const ins = state.inspections.find((x) => x.id === id);
     if (!ins) return;
+    setLoadedInspectionId(id);
 
     setDate(ins.date);
     setInspectionType(ins.inspectionType);
@@ -2044,25 +2066,52 @@ export default function App() {
     return cleanedInspections;
   }
   async function generateReportPdf() {
-    const element = document.getElementById('pdf-report-content');
-    if (!element) return null;
+    const originalElement = document.getElementById('pdf-report-content');
+    if (!originalElement) {
+      console.error('PDF report element not found');
+      return null;
+    }
+
+    // Clone element to ensure visibility during generation without affecting UI
+    const element = originalElement.cloneNode(true);
+    element.style.position = 'fixed';
+    element.style.top = '0';
+    element.style.left = '0';
+    element.style.width = '210mm';
+    element.style.zIndex = '-9999';
+    element.style.display = 'block';
+    element.style.backgroundColor = 'white';
+    element.removeAttribute('id');
+    document.body.appendChild(element);
+
     const options = {
       margin: 10,
-      image: { type: 'jpeg', quality: 0.9 },
-      html2canvas: { scale: 2 },
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     try {
-      const pdfBlob = await html2pdf().set(options).from(element).outputPdf('blob');
+      const pdfBlob = await html2pdf().set(options).from(element).output('blob');
+      document.body.removeChild(element);
       return pdfBlob;
     } catch (err) {
       console.error('PDF generation failed:', err);
+      if (document.body.contains(element)) {
+        document.body.removeChild(element);
+      }
       return null;
     }
   }
 
   async function downloadInspectionPack(inspection) {
     try {
+      // Load the inspection data into the view so the PDF is correct
+      loadInspection(inspection.id, false);
+      // Give React time to render the DOM updates
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
+
       const zip = new JSZip();
       const pdfBlob = await generateReportPdf();
       const photoMap = {};
@@ -2127,13 +2176,24 @@ export default function App() {
       // Add inspection.json to the zip
       zip.file("inspection.json", JSON.stringify(inspectionExport, null, 2));
 
+      const sanitizedProp = sanitizeFilename(inspection.propertyLabel || inspection.address || "inspection");
+
       if (pdfBlob) {
         zip.file("inspection-report.pdf", pdfBlob);
+
+        // Download PDF individually
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const pdfLink = document.createElement("a");
+        pdfLink.href = pdfUrl;
+        pdfLink.download = `inspectit-${sanitizedProp}-report.pdf`;
+        document.body.appendChild(pdfLink);
+        pdfLink.click();
+        document.body.removeChild(pdfLink);
+        URL.revokeObjectURL(pdfUrl);
       }
 
       // Generate zip blob and download
       const zipBlob = await zip.generateAsync({ type: "blob" });
-      const sanitizedProp = sanitizeFilename(inspection.propertyLabel || inspection.address || "inspection");
       const filename = `inspectit-${sanitizedProp}-pack.zip`;
       
       const url = URL.createObjectURL(zipBlob);
@@ -2146,6 +2206,7 @@ export default function App() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Inspection pack download failed:", err);
+      alert("Download failed: " + (err.message || "Unknown error"));
     }
   }
 
@@ -2154,6 +2215,7 @@ export default function App() {
     setAddress("");
     setOccupants("");
     setNotes("");
+    setLoadedInspectionId(null);
     setDraft(
       buildDraftFromTemplate(state.template, {
         date,
@@ -2167,8 +2229,8 @@ export default function App() {
   }
 
   function saveInspection() {
-    const ins = {
-      id: uid("insp"),
+    const newInspection = {
+      id: loadedInspectionId || uid("insp"),
       createdAt: new Date().toISOString(),
       date,
       inspectionType,
@@ -2180,10 +2242,17 @@ export default function App() {
       summary: totals,
     };
 
+    let nextInspections;
+    if (loadedInspectionId) {
+      nextInspections = state.inspections.map(ins => ins.id === loadedInspectionId ? newInspection : ins);
+    } else {
+      nextInspections = [newInspection, ...(state.inspections || [])];
+    }
+
     setState((prev) =>
       saveState({
         ...prev,
-        inspections: [ins, ...(prev.inspections || [])],
+        inspections: nextInspections,
       })
     );
 
@@ -2290,6 +2359,7 @@ export default function App() {
     setAddress("");
     setOccupants("");
     setNotes("");
+    setLoadedInspectionId(null);
 
     setDraft(
       buildDraftFromTemplate(freshTemplate, {
@@ -2383,7 +2453,7 @@ export default function App() {
       <style>{GLOBAL_CSS}</style>
       {previewOpen ? <style>{PRINT_SCOPE_CSS}</style> : null}
 
-      <div style={{ display: 'none' }}>
+      <div className="hidden">
         <div id="pdf-report-content" className="p-8 print:p-0">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -2731,9 +2801,59 @@ export default function App() {
                     <span className="font-semibold text-neutral-800">{t("checklist")}</span>
                     <span className="text-neutral-600"> {t("checklistHint")}</span>
                   </div>
-                  <SmallButton tone="primary" onClick={() => setAddSectionOpen(true)}>
-                    + {t("addSection")}
-                  </SmallButton>
+                  <div className="flex gap-2">
+                    <SmallButton onClick={openPreview}>{t("view")}</SmallButton>
+                    <SmallButton tone="primary" onClick={() => setAddSectionOpen(true)}>
+                      + {t("addSection")}
+                    </SmallButton>
+                  </div>
+                </div>
+
+                {/* Status Dashboard */}
+                <div className="mt-4 mb-6 p-4 rounded-xl bg-neutral-100/50 border border-neutral-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold text-neutral-700">Inspection Status</div>
+                    <div className="text-sm font-bold text-neutral-900">{totals.score}% Condition</div>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="h-3 w-full rounded-full bg-white border border-neutral-200 overflow-hidden flex">
+                    {totals.ok > 0 && <div style={{ width: `${(totals.ok / totals.total) * 100}%` }} className="bg-emerald-400" title={`OK: ${totals.ok}`} />}
+                    {totals.worn > 0 && <div style={{ width: `${(totals.worn / totals.total) * 100}%` }} className="bg-amber-400" title={`Worn: ${totals.worn}`} />}
+                    {totals.damaged > 0 && <div style={{ width: `${(totals.damaged / totals.total) * 100}%` }} className="bg-red-500" title={`Damaged: ${totals.damaged}`} />}
+                    {totals.missing > 0 && <div style={{ width: `${(totals.missing / totals.total) * 100}%` }} className="bg-red-700" title={`Missing: ${totals.missing}`} />}
+                    {totals.na > 0 && <div style={{ width: `${(totals.na / totals.total) * 100}%` }} className="bg-neutral-300" title={`N/A: ${totals.na}`} />}
+                  </div>
+
+                  {/* Info Bubbles */}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {totals.evidenceMissing > 0 && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-xs font-medium border border-red-100 animate-pulse">
+                        <span className="text-lg leading-none">📸</span>
+                        {totals.evidenceMissing} issues missing photos
+                      </div>
+                    )}
+                    {totals.sectionsNeedingWork.length > 0 && (
+                      <div 
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-800 text-xs font-medium border border-amber-100 cursor-pointer hover:bg-amber-100 transition-colors"
+                        onClick={() => setShowStatusDetails(!showStatusDetails)}
+                      >
+                        <span className="text-lg leading-none">⚠️</span>
+                        {totals.sectionsNeedingWork.length} sections need work
+                      </div>
+                    )}
+                    {totals.total > 0 && totals.evidenceMissing === 0 && totals.sectionsNeedingWork.length === 0 && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-100">
+                        <span className="text-lg leading-none">✓</span>
+                        Looking good
+                      </div>
+                    )}
+                  </div>
+                  {showStatusDetails && totals.sectionsNeedingWork.length > 0 && (
+                    <div className="mt-2 text-xs text-amber-800/80 pl-1">
+                      Check: {totals.sectionsNeedingWork.join(", ")}
+                    </div>
+                  )}
                 </div>
 
                 {/* Sections */}
@@ -2945,7 +3065,7 @@ export default function App() {
                       <span>Download Photos</span>
                     </SmallButton>
                     <SmallButton tone="primary" onClick={saveInspection}>
-                      {t("saveInspection")}
+                      {loadedInspectionId ? t("updateInspection") : t("saveInspection")}
                     </SmallButton>
                   </div>
                 </div>
