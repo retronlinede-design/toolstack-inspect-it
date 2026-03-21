@@ -806,7 +806,9 @@ const TRANSLATIONS = {
     inspectionReport: "Inspection Report",
     unknownError: "Unknown error",
     placeholderSection: "e.g., Garage, Guest Room...",
-    placeholderItem: "e.g., Ceiling light, Radiator..."
+    placeholderItem: "e.g., Ceiling light, Radiator...",
+    inspectorName: "Inspector Name",
+    organization: "Organization"
   },
   de: {
     profile: "Profil",
@@ -970,7 +972,9 @@ const TRANSLATIONS = {
     inspectionReport: "Inspektionsbericht",
     unknownError: "Unbekannter Fehler",
     placeholderSection: "z.B. Garage, Gästezimmer...",
-    placeholderItem: "z.B. Deckenleuchte, Heizkörper..."
+    placeholderItem: "z.B. Deckenleuchte, Heizkörper...",
+    inspectorName: "Name des Prüfers",
+    organization: "Organisation"
   }
 };
 
@@ -1313,6 +1317,33 @@ function ImportExportModal({ open, onClose, onImport, onExport, onPrint, languag
   );
 }
 
+function PhotoViewerModal({ open, url, caption, onClose }) {
+  if (!open || !url) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity"
+      onClick={onClose}
+    >
+      <div 
+        className="relative max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-2xl p-4 flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img src={url} alt={caption || "Inspection photo"} className="block max-w-full max-h-[calc(90vh-100px)] object-contain rounded" />
+        {caption && <p className="text-center text-neutral-700 font-medium">{caption}</p>}
+        <button
+          type="button"
+          className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-white shadow-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-600 hover:text-neutral-900 transition-colors"
+          onClick={onClose}
+          aria-label="Close photo viewer"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ---------------------------
 // data model
 // ---------------------------
@@ -1522,6 +1553,7 @@ export default function App() {
   const [deleteItemState, setDeleteItemState] = useState({ open: false, sectionId: null, itemId: null });
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [importExportOpen, setImportExportOpen] = useState(false);
+  const [photoViewerState, setPhotoViewerState] = useState({ open: false, url: null, caption: "" });
   const [collapsedSections, setCollapsedSections] = useState(new Set());
 
   const fileRef = useRef(null);
@@ -2221,6 +2253,12 @@ export default function App() {
         isDanger
       />
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} onReset={openResetConfirm} language={language} />
+      <PhotoViewerModal
+        open={photoViewerState.open}
+        url={photoViewerState.url}
+        caption={photoViewerState.caption}
+        onClose={() => setPhotoViewerState({ open: false, url: null, caption: "" })}
+      />
 
       {/* Hidden import input */}
       <input
@@ -2335,6 +2373,24 @@ export default function App() {
 
               <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label className="text-sm">
+                  <div className="text-neutral-600 font-medium">{t("inspectorName")}</div>
+                  <input
+                    className={inputBase}
+                    value={profile.user || ""}
+                    onChange={(e) => setProfile(p => ({ ...p, user: e.target.value }))}
+                    placeholder="e.g. John Doe"
+                  />
+                </label>
+                <label className="text-sm">
+                  <div className="text-neutral-600 font-medium">{t("organization")}</div>
+                  <input
+                    className={inputBase}
+                    value={profile.org || ""}
+                    onChange={(e) => setProfile(p => ({ ...p, org: e.target.value }))}
+                    placeholder="e.g. Acme Corp"
+                  />
+                </label>
+                <label className="text-sm">
                   <div className="text-neutral-600 font-medium">{t("propertyLabel")}</div>
                   <input
                     className={inputBase}
@@ -2382,6 +2438,12 @@ export default function App() {
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                   {(draft.sections || []).map((s, index) => {
                     const isCollapsed = collapsedSections.has(s.id);
+                    const stats = s.items.reduce((acc, item) => {
+                      acc[item.condition] = (acc[item.condition] || 0) + 1;
+                      return acc;
+                    }, { ok: 0, worn: 0, damaged: 0, missing: 0, "n/a": 0 });
+                    const totalItems = s.items.length;
+
                     return (
                     <div
                       key={s.id}
@@ -2418,6 +2480,15 @@ export default function App() {
                             </div>
                           )}
                           <div className="text-xs text-neutral-600">{(s.items || []).length} {t("items")}</div>
+
+                          {totalItems > 0 && (
+                            <div className="mt-2 flex h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
+                              {stats.ok > 0 && <div style={{ width: `${(stats.ok / totalItems) * 100}%` }} className="bg-emerald-400" />}
+                              {stats.worn > 0 && <div style={{ width: `${(stats.worn / totalItems) * 100}%` }} className="bg-amber-400" />}
+                              {(stats.damaged + stats.missing) > 0 && <div style={{ width: `${((stats.damaged + stats.missing) / totalItems) * 100}%` }} className="bg-red-500" />}
+                              {stats["n/a"] > 0 && <div style={{ width: `${(stats["n/a"] / totalItems) * 100}%` }} className="bg-neutral-300" />}
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           <SmallButton onClick={() => openAddItem(s.id)} className="px-2 py-1.5" tone="primary">
@@ -2522,7 +2593,12 @@ export default function App() {
                                     <img
                                       src={photoURLs[p.id]}
                                       alt={p.name}
-                                      className="w-16 h-16 object-cover rounded border border-neutral-200"
+                                      className="w-16 h-16 object-cover rounded border border-neutral-200 cursor-pointer hover:opacity-80 transition-opacity"
+                                      onClick={() => {
+                                        if (photoURLs[p.id]) {
+                                          setPhotoViewerState({ open: true, url: photoURLs[p.id], caption: p.caption });
+                                        }
+                                      }}
                                     />
                                     <input
                                       className="w-full mt-1 px-2 py-1 text-xs rounded border border-neutral-200 bg-white focus:outline-none focus:border-neutral-400"
