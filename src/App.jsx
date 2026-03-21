@@ -1,8 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import hubIcon from "./assets/hub_tag.png";
-import previewIcon from "./assets/preview_tag.png";
-import exportIcon from "./assets/export_tag.png";
 import headingImage from "./assets/inspectit-heading.png";
 
 /**
@@ -86,9 +83,9 @@ const lsSet = (k, v) => {
 // ---------------------------
 
 const inputBase =
-  "w-full mt-1 px-3 py-2 rounded-xl border-2 border-neutral-900 bg-white focus:outline-none focus:bg-[#D5FF00]/10 transition-colors font-medium";
+  "w-full mt-1 px-3 py-2 rounded-lg border border-neutral-300 bg-white focus:outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-colors font-medium";
 
-const card = "rounded-2xl bg-white border-2 border-neutral-900 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]";
+const card = "rounded-xl bg-white border border-neutral-200 shadow-sm";
 const cardPad = "p-4";
 
 const ACTION_BASE =
@@ -101,7 +98,7 @@ function ActionButton({ children, onClick, disabled, title }) {
       title={title}
       onClick={onClick}
       disabled={disabled}
-      className={`${ACTION_BASE} bg-white hover:bg-[#D5FF00] text-neutral-700 border-neutral-200`}
+      className={`${ACTION_BASE} bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200`}
     >
       {children}
     </button>
@@ -111,10 +108,10 @@ function ActionButton({ children, onClick, disabled, title }) {
 function SmallButton({ children, onClick, tone = "default", className = "", disabled, title, type = "button" }) {
   const cls =
     tone === "primary"
-      ? "bg-neutral-900 text-[#D5FF00] border-neutral-900 hover:bg-neutral-800"
+      ? "bg-neutral-600 text-white border-transparent hover:bg-neutral-500"
       : tone === "danger"
-        ? "bg-red-100 text-red-900 border-neutral-900 hover:bg-red-200"
-        : "bg-white text-neutral-900 border-neutral-900 hover:bg-[#D5FF00]";
+        ? "bg-white text-red-600 border-red-200 hover:bg-red-50"
+        : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-50";
 
   return (
     <button
@@ -122,7 +119,7 @@ function SmallButton({ children, onClick, tone = "default", className = "", disa
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`print:hidden px-4 py-2 rounded-xl text-sm font-bold border-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${cls} ${className}`}
+      className={`print:hidden px-4 py-2 rounded-lg text-sm font-medium border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${cls} ${className}`}
     >
       {children}
     </button>
@@ -132,14 +129,14 @@ function SmallButton({ children, onClick, tone = "default", className = "", disa
 function IconButton({ title, onClick, tone = "default", children }) {
   const cls =
     tone === "danger"
-      ? "bg-red-100 text-red-900 hover:bg-red-200"
-      : "bg-white text-neutral-900 hover:bg-[#D5FF00]";
+      ? "text-red-600 hover:bg-red-50 border-red-200"
+      : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-800 border-neutral-200";
   return (
     <button
       type="button"
       title={title}
       onClick={onClick}
-      className={`print:hidden h-10 w-10 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:shadow-none transition-all flex items-center justify-center font-bold ${cls}`}
+      className={`print:hidden h-10 w-10 rounded-lg border transition-all flex items-center justify-center font-medium ${cls}`}
       aria-label={title}
     >
       {children}
@@ -182,6 +179,37 @@ function TrashIcon({ className = "" }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
       <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function HomeIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  );
+}
+
+function FileTextIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" x2="8" y1="13" y2="13"/>
+      <line x1="16" x2="8" y1="17" y2="17"/>
+      <line x1="10" x2="8" y1="9" y2="9"/>
+    </svg>
+  );
+}
+
+function ArchiveIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="20" height="5" x="2" y="3" rx="1"/>
+      <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/>
+      <path d="M10 12h4"/>
     </svg>
   );
 }
@@ -365,7 +393,7 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full mt-1 px-3 py-2 rounded-xl border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-800 transition flex items-center justify-between gap-2 font-medium"
+        className="w-full mt-1 px-3 py-2 rounded-lg border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-800 transition flex items-center justify-between gap-2 font-medium"
         title={t("chooseDate")}
       >
         <span className={value ? "font-medium" : "text-neutral-500"}>{display}</span>
@@ -382,14 +410,14 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
           />
 
           <div
-            className="fixed z-50 rounded-2xl bg-white border-2 border-neutral-900 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] p-4"
+            className="fixed z-50 rounded-xl bg-white border border-neutral-200 shadow-xl p-4"
             style={{ top: pos.top, left: pos.left, width: 340 }}
           >
             <div className="flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => setViewDate((d) => startOfMonth(addMonths(d, -1)))}
-                className="h-9 w-9 rounded-xl border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px] transition-all"
+                className="h-8 w-8 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-600 flex items-center justify-center transition-all"
                 aria-label={t("previousMonth")}
                 title={t("previousMonth")}
               >
@@ -403,7 +431,7 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
               <button
                 type="button"
                 onClick={() => setViewDate((d) => startOfMonth(addMonths(d, 1)))}
-                className="h-9 w-9 rounded-xl border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-800 flex items-center justify-center font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px] transition-all"
+                className="h-8 w-8 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-600 flex items-center justify-center transition-all"
                 aria-label={t("nextMonth")}
                 title={t("nextMonth")}
               >
@@ -425,13 +453,13 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
                 const isSelected = selected ? sameDay(dt, selected) : false;
                 const isInMonth = inViewMonth(dt);
 
-                const base = "h-9 rounded-xl text-sm font-bold flex items-center justify-center border-2 transition select-none";
+                const base = "h-9 rounded-lg text-sm font-medium flex items-center justify-center border transition select-none";
 
                 const cls = isSelected
-                  ? "bg-neutral-900 text-[#D5FF00] border-neutral-900"
+                  ? "bg-neutral-600 text-white border-transparent"
                   : isToday
-                    ? "bg-white text-neutral-900 border-[#D5FF00] shadow-[2px_2px_0px_0px_rgba(213,255,0,1)]"
-                    : "bg-white text-neutral-900 border-neutral-900 hover:bg-[#D5FF00]";
+                    ? "bg-white text-neutral-800 border-neutral-300 font-bold"
+                    : "bg-white text-neutral-700 border-transparent hover:bg-neutral-100";
 
                 const dim = isInMonth ? "" : "opacity-40";
 
@@ -455,7 +483,7 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
             <div className="mt-3 flex items-center justify-between gap-2">
               <button
                 type="button"
-                className="px-3 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-900"
+                className="px-3 py-2 rounded-lg text-sm font-medium border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700"
                 onClick={() => {
                   onChange?.(toISODate(today));
                   setOpen(false);
@@ -466,7 +494,7 @@ function DatePicker({ label = "Date", value, onChange, language = "en" }) {
 
               <button
                 type="button"
-                className="px-3 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] hover:bg-neutral-800"
+                className="px-3 py-2 rounded-lg text-sm font-medium border border-transparent bg-neutral-600 text-white hover:bg-neutral-500"
                 onClick={() => setOpen(false)}
               >
                 {t("close")}
@@ -649,7 +677,6 @@ const TRANSLATIONS = {
     createEmailDraft: "Create Email Draft",
     jsonBackupTitle: "JSON Backup",
     downloadJson: "Download JSON",
-    importJson: "Import JSON",
     importWarning: "Warning: Import replaces current app data. Export first if unsure.",
     emailSubject: "InspectIt Export Pack",
     emailBody: "Attached: PDF export from InspectIt (please attach the downloaded PDF file).\n\nExports are generated locally on your device. No data is uploaded automatically.",
@@ -814,7 +841,6 @@ const TRANSLATIONS = {
     createEmailDraft: "E-Mail-Entwurf erstellen",
     jsonBackupTitle: "JSON-Backup",
     downloadJson: "JSON herunterladen",
-    importJson: "JSON importieren",
     importWarning: "Warnung: Import ersetzt aktuelle App-Daten. Exportieren Sie zuerst, wenn Sie unsicher sind.",
     emailSubject: "InspectIt Export-Paket",
     emailBody: "Anbei: PDF-Export von InspectIt (bitte die heruntergeladene PDF-Datei anhängen).\n\nExporte werden lokal auf Ihrem Gerät erstellt. Es werden keine Daten automatisch hochgeladen.",
@@ -844,26 +870,26 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:hidden">
-      <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <div className="absolute inset-0 bg-neutral-800/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-2xl max-h-[85vh] bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col"
+        className="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col"
       >
-        {/* Funky Header */}
-        <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4">
+        {/* Header */}
+        <div className="bg-neutral-50 p-6 border-b border-neutral-200 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase transform -rotate-1">
+            <h2 className="text-2xl font-bold text-neutral-800 tracking-tight">
               {t("helpInfo")}
             </h2>
-            <p className="text-neutral-900 font-bold mt-1 text-sm">
+            <p className="text-neutral-600 mt-1 text-sm">
               {t("keepSafe")}
             </p>
           </div>
           <button
             type="button"
-            className="h-10 w-10 rounded-xl bg-white border-2 border-neutral-900 hover:bg-neutral-900 hover:text-[#D5FF00] flex items-center justify-center font-black text-xl transition-all active:translate-y-1"
+            className="h-8 w-8 rounded-lg bg-white border border-neutral-200 hover:bg-neutral-50 flex items-center justify-center text-neutral-500 hover:text-neutral-800 transition-all"
             onClick={onClose}
           >
             ✕
@@ -873,14 +899,14 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
         {/* Content */}
         <div className="p-6 overflow-y-auto space-y-6 bg-white">
           {/* 1) About InspectIt */}
-          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("aboutTitle")}</h3>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("aboutTitle")}</h3>
             <p className="text-sm text-neutral-700 leading-relaxed">{t("aboutText")}</p>
           </div>
 
           {/* 2) How InspectIt Works */}
-          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("howWorksTitle")}</h3>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("howWorksTitle")}</h3>
             <p className="text-sm text-neutral-700 leading-relaxed mb-2">{t("howWorksText")}</p>
             <ol className="text-sm text-neutral-700 space-y-2 list-decimal list-inside">
               <li>
@@ -917,8 +943,8 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
           </div>
 
           {/* 3) Your Data & Privacy */}
-          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("dataPrivacyTitle")}</h3>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("dataPrivacyTitle")}</h3>
             <p className="text-sm text-neutral-700 leading-relaxed mb-2">{t("dataPrivacyText")}</p>
             <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
               <li>{t("dataPrivacyList1")}</li>
@@ -929,8 +955,8 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
           </div>
 
           {/* 4) Backup & Restore */}
-          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("backupRestoreTitle")}</h3>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("backupRestoreTitle")}</h3>
             <p className="text-sm text-neutral-700 leading-relaxed mb-2">{t("backupRestoreText1")}</p>
             <p className="text-sm text-neutral-700 leading-relaxed mb-2">{t("backupRestoreText2")}</p>
             <p className="text-sm text-neutral-700 leading-relaxed">{t("backupRestoreRoutine")}</p>
@@ -942,8 +968,8 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
           </div>
 
           {/* 5) Buttons Explained */}
-          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("buttonsExplainedTitle")}</h3>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("buttonsExplainedTitle")}</h3>
             <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
               <li>{t("buttonPreview")}</li>
               <li>{t("buttonPrint")}</li>
@@ -953,15 +979,15 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
           </div>
 
           {/* 6) Storage Keys (Advanced) */}
-          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("storageKeysTitle")}</h3>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("storageKeysTitle")}</h3>
             <p className="text-sm text-neutral-700 leading-relaxed">{t("appDataKey")} <code className="font-mono text-xs bg-white border border-neutral-300 rounded px-2 py-1">{KEY}</code></p>
             <p className="text-sm text-neutral-700 leading-relaxed mt-1">{t("sharedProfileKey")} <code className="font-mono text-xs bg-white border border-neutral-300 rounded px-2 py-1">{PROFILE_KEY}</code></p>
           </div>
 
           {/* 7) Notes / Limitations */}
-          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("notesLimitationsTitle")}</h3>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("notesLimitationsTitle")}</h3>
             <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
               <li>{t("limitationsList1")}</li>
               <li>{t("limitationsList2")}</li>
@@ -969,24 +995,24 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
           </div>
 
           {/* 8) Support / Feedback */}
-          <div className="bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5">
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("supportTitle")}</h3>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("supportTitle")}</h3>
             <p className="text-sm text-neutral-700 leading-relaxed">{t("supportText")}</p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t-4 border-neutral-900 bg-neutral-100 flex items-center justify-between gap-4">
+        <div className="p-4 border-t border-neutral-200 bg-neutral-50 flex items-center justify-between gap-4">
           <button
             type="button"
-            className="px-4 py-2 rounded-xl text-sm font-bold border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-500 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
             onClick={onReset}
           >
             {t("resetData")}
           </button>
           <button
             type="button"
-            className="px-6 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[4px] active:shadow-none transition-all"
+            className="px-6 py-2 rounded-lg text-sm font-medium bg-neutral-600 text-white hover:bg-neutral-500 transition-all"
             onClick={onClose}
           >
             {t("gotIt")}
@@ -1003,15 +1029,15 @@ function ConfirmModal({ open, onClose, onConfirm, title, message, confirmLabel =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 print:hidden">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <div className="absolute inset-0 bg-neutral-800/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
       
-      <div className="relative w-full max-w-sm bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden transform transition-all">
-        <div className="px-5 py-4 border-b-4 border-neutral-900 flex items-center justify-between bg-[#D5FF00]">
-          <h3 className="font-black text-xl text-neutral-900 uppercase tracking-tight transform -rotate-1">{title}</h3>
+      <div className="relative w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden transform transition-all">
+        <div className="px-5 py-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50">
+          <h3 className="font-bold text-lg text-neutral-800 tracking-tight">{title}</h3>
           <button 
             type="button"
             onClick={onClose}
-            className="h-8 w-8 rounded-lg border-2 border-neutral-900 bg-white flex items-center justify-center hover:bg-neutral-900 hover:text-[#D5FF00] text-neutral-900 font-bold transition-colors"
+            className="h-8 w-8 rounded-lg border border-neutral-200 bg-white flex items-center justify-center hover:bg-neutral-50 text-neutral-500 hover:text-neutral-800 transition-colors"
           >
             ✕
           </button>
@@ -1044,15 +1070,15 @@ function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, i
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 print:hidden">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <div className="absolute inset-0 bg-neutral-800/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
       
-      <div className="relative w-full max-w-sm bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden transform transition-all">
-        <div className="px-5 py-4 border-b-4 border-neutral-900 flex items-center justify-between bg-[#D5FF00]">
-          <h3 className="font-black text-xl text-neutral-900 uppercase tracking-tight transform -rotate-1">{title}</h3>
+      <div className="relative w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden transform transition-all">
+        <div className="px-5 py-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50">
+          <h3 className="font-bold text-lg text-neutral-800 tracking-tight">{title}</h3>
           <button 
             type="button"
             onClick={onClose}
-            className="h-8 w-8 rounded-lg border-2 border-neutral-900 bg-white flex items-center justify-center hover:bg-neutral-900 hover:text-[#D5FF00] text-neutral-900 font-bold transition-colors"
+            className="h-8 w-8 rounded-lg border border-neutral-200 bg-white flex items-center justify-center hover:bg-neutral-50 text-neutral-500 hover:text-neutral-800 transition-colors"
           >
             ✕
           </button>
@@ -1066,7 +1092,7 @@ function InputModal({ open, onClose, onSubmit, title, inputLabel, placeholder, i
           className="p-5"
         >
           <label className="block">
-            <div className="text-sm font-bold text-neutral-900 mb-1">{inputLabel}</div>
+            <div className="text-sm font-bold text-neutral-800 mb-1">{inputLabel}</div>
             <input
               autoFocus
               type="text"
@@ -1099,24 +1125,25 @@ function ImportExportModal({ open, onClose, onImport, onExport, onPrint, languag
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:hidden">
-      <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <div className="absolute inset-0 bg-neutral-800/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-lg max-h-[85vh] bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col"
+        className="relative w-full max-w-lg max-h-[85vh] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4">
+        <div className="bg-neutral-50 p-6 border-b border-neutral-200 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase transform -rotate-1">
-              {t("exportPackTitle")}
-            </h2>
-            <p className="text-neutral-900 font-bold mt-1 text-sm">{t("exportPackSubtitle")}</p>
+            <img
+              src={headingImage}
+              alt="Inspect-It"
+              className="h-24 w-auto"
+            />
           </div>
           <button
             type="button"
-            className="h-10 w-10 rounded-xl bg-white border-2 border-neutral-900 hover:bg-neutral-900 hover:text-[#D5FF00] flex items-center justify-center font-black text-xl transition-all active:translate-y-1"
+            className="h-8 w-8 rounded-lg bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-500 hover:text-neutral-800 flex items-center justify-center transition-all"
             onClick={onClose}
           >
             ✕
@@ -1127,33 +1154,33 @@ function ImportExportModal({ open, onClose, onImport, onExport, onPrint, languag
         <div className="p-6 space-y-6 text-sm text-neutral-700 overflow-auto min-h-0 bg-white">
           
           {/* PDF & Print Section */}
-          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-indigo-50 transition-colors">
-             <div className="absolute -top-3 -left-3 bg-indigo-400 text-white border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform -rotate-3 group-hover:rotate-0 transition-transform">
+          <div className="group relative bg-neutral-50 border border-neutral-200 rounded-xl p-5 hover:bg-indigo-50 transition-colors">
+             <div className="absolute -top-3 -left-3 bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full">
               PDF
             </div>
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("pdfPrintTitle")}</h3>
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("pdfPrintTitle")}</h3>
             <div className="flex flex-col gap-2 mt-4">
-                <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] transition-colors" onClick={onPrint}>
+                <button type="button" className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors" onClick={onPrint}>
                     {t("printSavePdf")}
                 </button>
-                <a href={mailtoLink} className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] transition-colors block">
+                <a href={mailtoLink} className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors block">
                     {t("createEmailDraft")}
                 </a>
             </div>
           </div>
 
           {/* JSON Backup Section */}
-          <div className="group relative bg-neutral-50 border-2 border-neutral-900 rounded-2xl p-5 hover:bg-emerald-50 transition-colors">
-            <div className="absolute -top-3 -right-3 bg-emerald-400 text-neutral-900 border-2 border-neutral-900 text-xs font-bold px-3 py-1 rounded-full transform rotate-2 group-hover:rotate-0 transition-transform">
+          <div className="group relative bg-neutral-50 border border-neutral-200 rounded-xl p-5 hover:bg-emerald-50 transition-colors">
+            <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
               JSON
             </div>
-            <h3 className="font-bold text-lg text-neutral-900 mb-2">{t("jsonBackupTitle")}</h3>
+            <h3 className="font-bold text-lg text-neutral-800 mb-2">{t("jsonBackupTitle")}</h3>
             <div className="flex flex-col gap-2 mt-4">
-              <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:bg-emerald-600 hover:border-emerald-700 active:translate-y-1 active:shadow-sm transition-all" onClick={onExport}>
+              <button type="button" className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium bg-neutral-600 text-white hover:bg-neutral-500 transition-all" onClick={onExport}>
                 {t("downloadJson")}
               </button>
               <div className="pt-2 border-t border-neutral-200 mt-2">
-                  <button type="button" className="w-full text-left px-4 py-2 rounded-xl text-sm font-bold border-2 border-neutral-200 text-neutral-700 bg-white hover:bg-emerald-100 hover:border-emerald-400 transition-colors" onClick={onImport}>
+                  <button type="button" className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium border border-neutral-200 text-neutral-700 bg-white hover:bg-emerald-50 hover:border-emerald-200 transition-colors" onClick={onImport}>
                     {t("importJson")}
                   </button>
                   <p className="text-xs text-neutral-500 mt-2 px-1">
@@ -1165,8 +1192,8 @@ function ImportExportModal({ open, onClose, onImport, onExport, onPrint, languag
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t-4 border-neutral-900 bg-neutral-100 flex items-center justify-end gap-2">
-          <button type="button" className="px-6 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[4px] active:shadow-none transition-all" onClick={onClose}>
+        <div className="p-4 border-t border-neutral-200 bg-neutral-50 flex items-center justify-end gap-2">
+          <button type="button" className="px-6 py-2 rounded-lg text-sm font-medium bg-neutral-600 text-white hover:bg-neutral-500 transition-all" onClick={onClose}>
             {t("done")}
           </button>
         </div>
@@ -1347,24 +1374,15 @@ function badgeClass(cond) {
   switch (cond) {
     case "damaged":
     case "missing":
-      return "bg-red-500 text-white border-neutral-900";
+      return "bg-red-500 text-white border-transparent";
     case "worn":
-      return "bg-amber-300 text-neutral-900 border-neutral-900";
+      return "bg-amber-100 text-amber-800 border-transparent";
     case "n/a":
-      return "bg-neutral-200 text-neutral-500 border-neutral-900";
+      return "bg-neutral-100 text-neutral-500 border-transparent";
     default:
-      return "bg-emerald-300 text-neutral-900 border-neutral-900";
+      return "bg-emerald-100 text-emerald-800 border-transparent";
   }
 }
-
-const SECTION_BG_COLORS = [
-  "bg-cyan-100",
-  "bg-rose-100",
-  "bg-amber-100",
-  "bg-violet-100",
-  "bg-lime-100",
-  "bg-sky-100",
-];
 
 // ---------------------------
 // App
@@ -1387,7 +1405,7 @@ export default function App() {
   const [addSectionOpen, setAddSectionOpen] = useState(false);
   const [addItemState, setAddItemState] = useState({ open: false, sectionId: null });
   const [renameItemState, setRenameItemState] = useState({ open: false, sectionId: null, itemId: null, initialValue: "" });
-  const [renameSectionState, setRenameSectionState] = useState({ open: false, sectionId: null, initialValue: "" });
+  const [editingSectionId, setEditingSectionId] = useState(null);
   const [deleteSectionState, setDeleteSectionState] = useState({ open: false, sectionId: null });
   const [deleteItemState, setDeleteItemState] = useState({ open: false, sectionId: null, itemId: null });
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
@@ -1495,15 +1513,12 @@ export default function App() {
     setAddSectionOpen(false);
   }
 
-  function openRenameSection(sectionId) {
-    const current = (draft.sections || []).find((s) => s.id === sectionId)?.title || "";
-    setRenameSectionState({ open: true, sectionId, initialValue: current });
-  }
-
-  function onRenameSectionSubmit(title) {
-    const { sectionId, initialValue } = renameSectionState;
-    if (!sectionId) return;
-    const nextTitle = String(title).trim() || initialValue || t("sectionDefault");
+  function finishEditingSection(sectionId, newTitle) {
+    const nextTitle = String(newTitle).trim();
+    if (!nextTitle) {
+      setEditingSectionId(null);
+      return;
+    }
 
     const nextTemplate = normalizeTemplate(state.template);
     nextTemplate.sections = (nextTemplate.sections || []).map((s) => (s.id !== sectionId ? s : { ...s, title: nextTitle }));
@@ -1513,7 +1528,7 @@ export default function App() {
       ...d,
       sections: (d.sections || []).map((s) => (s.id !== sectionId ? s : { ...s, title: nextTitle })),
     }));
-    setRenameSectionState({ open: false, sectionId: null, initialValue: "" });
+    setEditingSectionId(null);
   }
 
   function openDeleteSection(sectionId) {
@@ -1924,7 +1939,6 @@ export default function App() {
         onSubmit={onAddSectionSubmit}
         title={t("addSectionTitle")}
         inputLabel={t("sectionTitle")}
-        placeholder="e.g., Garage, Guest Room..."
         placeholder={t("placeholderSection")}
         submitLabel={t("addSection")}
       />
@@ -1935,7 +1949,6 @@ export default function App() {
         onSubmit={onAddItemSubmit}
         title={t("addItemTitle")}
         inputLabel={t("itemLabel")}
-        placeholder="e.g., Ceiling light, Radiator..."
         placeholder={t("placeholderItem")}
         submitLabel={t("addItemTitle")}
       />
@@ -1947,16 +1960,6 @@ export default function App() {
         title={t("renameItemTitle")}
         inputLabel={t("itemLabel")}
         initialValue={renameItemState.initialValue}
-        submitLabel={t("save")}
-      />
-      <InputModal
-        open={renameSectionState.open}
-        language={language}
-        onClose={() => setRenameSectionState({ ...renameSectionState, open: false })}
-        onSubmit={onRenameSectionSubmit}
-        title={t("renameSectionTitle")}
-        inputLabel={t("sectionTitle")}
-        initialValue={renameSectionState.initialValue}
         submitLabel={t("save")}
       />
       <ConfirmModal
@@ -2023,34 +2026,26 @@ export default function App() {
               target="_blank"
               rel="noreferrer"
               title="ToolStack Hub"
-              className={`${(!HUB_URL || HUB_URL === "https://YOUR-WIX-HUB-URL-HERE") && "pointer-events-none opacity-50"}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 shadow-sm hover:shadow ${(!HUB_URL || HUB_URL === "https://YOUR-WIX-HUB-URL-HERE") ? "pointer-events-none opacity-50" : ""}`}
             >
-              <img
-                src={hubIcon}
-                alt="Hub"
-                className="h-20 w-auto hover:scale-105 transition-transform duration-200"
-              />
+              <HomeIcon className="h-5 w-5" />
+              <span>Hub</span>
             </a>
-            <button type="button" onClick={openPreview} title="Preview">
-              <img
-                src={previewIcon}
-                alt="Preview"
-                className="h-20 w-auto hover:scale-105 transition-transform duration-200"
-              />
+            <button type="button" onClick={openPreview} title="Preview" className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 shadow-sm hover:shadow">
+              <FileTextIcon className="h-5 w-5" />
+              <span>Preview</span>
             </button>
-            <button type="button" onClick={() => setImportExportOpen(true)} title="Import / Export">
-              <img
-                src={exportIcon}
-                alt="Export"
-                className="h-20 w-auto hover:scale-105 transition-transform duration-200"
-              />
+            <button type="button" onClick={() => setImportExportOpen(true)} title="Import / Export" className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 shadow-sm hover:shadow">
+              <ArchiveIcon className="h-5 w-5" />
+              <span>Export</span>
             </button>
 
             <button
               type="button"
               title="Help"
               onClick={() => setHelpOpen(true)}
-              className="print:hidden h-14 w-14 rounded-xl border-2 border-neutral-900 bg-[#D5FF00] text-neutral-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:shadow-none transition-all flex items-center justify-center font-black text-2xl"
+              className="print:hidden h-14 w-14 rounded-full bg-neutral-600 text-white shadow-lg hover:shadow-xl hover:bg-neutral-500 transition-all flex items-center justify-center font-bold text-2xl"
+              className="print:hidden h-10 w-10 rounded-lg bg-neutral-600 text-white shadow hover:bg-neutral-500 transition-all flex items-center justify-center font-bold text-lg"
               aria-label="Help"
             >
               ?
@@ -2063,12 +2058,12 @@ export default function App() {
           {/* Draft card */}
           <div className="flex flex-col gap-3">
             <div className="flex justify-end">
-              <div className="flex items-center rounded-xl border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-1 text-sm font-bold">
+              <div className="flex items-center rounded-lg border border-neutral-200 bg-white shadow-sm p-1 text-sm font-medium">
                 <button
                   type="button"
                   onClick={() => setLanguage("en")}
                   className={`px-3 py-1 rounded-lg transition ${
-                    language === "en" ? "bg-neutral-900 text-[#D5FF00]" : "text-neutral-900 hover:bg-[#D5FF00]"
+                    language === "en" ? "bg-neutral-600 text-white" : "text-neutral-600 hover:bg-neutral-100"
                   }`}
                 >
                   EN
@@ -2077,7 +2072,7 @@ export default function App() {
                   type="button"
                   onClick={() => setLanguage("de")}
                   className={`px-3 py-1 rounded-lg transition ${
-                    language === "de" ? "bg-neutral-900 text-[#D5FF00]" : "text-neutral-900 hover:bg-[#D5FF00]"
+                    language === "de" ? "bg-neutral-600 text-white" : "text-neutral-600 hover:bg-neutral-100"
                   }`}
                 >
                   DE
@@ -2142,7 +2137,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className={`${card} mt-3 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]`}>
+            <div className={`${card} mt-3`}>
               <div className={cardPad}>
                 {/* Checklist builder */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -2160,20 +2155,36 @@ export default function App() {
                   {(draft.sections || []).map((s, index) => (
                     <div
                       key={s.id}
-                      className={`rounded-2xl border-2 border-neutral-900 p-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${SECTION_BG_COLORS[index % SECTION_BG_COLORS.length]}`}
+                      className="rounded-xl border border-neutral-200 p-4 bg-neutral-50 hover:border-neutral-300 hover:shadow-md transition-all"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="font-bold text-neutral-800 truncate">{s.title}</div>
+                        <div className="min-w-0 flex-1 group">
+                          {editingSectionId === s.id ? (
+                            <input
+                              autoFocus
+                              className="font-bold text-neutral-800 w-full bg-white border border-neutral-300 rounded-lg px-2 py-1 -ml-2 outline-none focus:ring-2 focus:ring-neutral-200"
+                              defaultValue={s.title}
+                              onBlur={(e) => finishEditingSection(s.id, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") finishEditingSection(s.id, e.currentTarget.value);
+                                if (e.key === "Escape") setEditingSectionId(null);
+                              }}
+                            />
+                          ) : (
+                            <div
+                              onClick={() => setEditingSectionId(s.id)}
+                              className="font-bold text-neutral-800 truncate cursor-pointer rounded-lg px-2 py-1 -ml-2 border border-transparent hover:border-neutral-300 hover:bg-white hover:shadow-sm transition-all"
+                              title={t("renameSectionTitle")}
+                            >
+                              {s.title}
+                            </div>
+                          )}
                           <div className="text-xs text-neutral-600">{(s.items || []).length} {t("items")}</div>
                         </div>
                         <div className="flex items-center gap-2">
                           <SmallButton onClick={() => openAddItem(s.id)} className="px-2 py-1.5" tone="primary">
                             + Item
                           </SmallButton>
-                          <IconButton title="Rename section" onClick={() => openRenameSection(s.id)}>
-                            ✎
-                          </IconButton>
                           <IconButton title="Delete section" tone="danger" onClick={() => openDeleteSection(s.id)}>
                             🗑
                           </IconButton>
@@ -2186,14 +2197,14 @@ export default function App() {
                         ) : null}
 
                         {(s.items || []).map((it) => (
-                          <div key={it.id} className="rounded-2xl bg-white border-2 border-neutral-900 p-3 shadow-sm">
+                          <div key={it.id} className="rounded-lg bg-white border border-neutral-200 p-3">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <div className="text-sm font-medium text-neutral-800 break-words">{it.label}</div>
                                 <div className="mt-2 flex items-center gap-2 print:hidden">
                                   <button
                                     type="button"
-                                    className="text-xs px-2 py-1 rounded-lg border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-900 font-bold"
+                                    className="text-xs px-2 py-1 rounded border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-600"
                                     onClick={() => openRenameItem(s.id, it.id)}
                                     title="Rename item"
                                   >
@@ -2201,7 +2212,7 @@ export default function App() {
                                   </button>
                                   <button
                                     type="button"
-                                    className="text-xs px-2 py-1 rounded-lg border-2 border-neutral-900 bg-red-100 hover:bg-red-200 text-red-900 font-bold"
+                                    className="text-xs px-2 py-1 rounded border border-red-100 bg-red-50 hover:bg-red-100 text-red-700"
                                     onClick={() => openDeleteItem(s.id, it.id)}
                                     title="Delete item"
                                   >
@@ -2212,11 +2223,11 @@ export default function App() {
 
                               {/* Condition controls (aligned) */}
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className={`inline-flex items-center h-9 text-xs px-2 rounded-full border-2 font-bold ${badgeClass(it.condition)}`}>
+                                <span className={`inline-flex items-center h-8 text-xs px-2 rounded-full font-medium border ${badgeClass(it.condition)}`}>
                                   {t(`condition_${it.condition}`) || "OK"}
                                 </span>
                                 <select
-                                  className="h-9 text-sm px-2 rounded-xl border-2 border-neutral-900 bg-white focus:outline-none focus:bg-[#D5FF00]/10 font-bold"
+                                  className="h-8 text-sm px-2 rounded-lg border border-neutral-200 bg-white focus:outline-none focus:border-neutral-400 font-medium"
                                   value={it.condition}
                                   onChange={(e) => updateItem(s.id, it.id, { condition: e.target.value })}
                                 >
@@ -2232,13 +2243,13 @@ export default function App() {
                             {/* Wider note + wrap, evidence under */}
                             <div className="mt-3 space-y-2">
                               <AutoTextarea
-                                className="w-full px-3 py-2 rounded-xl border-2 border-neutral-900 text-sm bg-white focus:outline-none focus:bg-[#D5FF00]/10 resize-none overflow-hidden whitespace-pre-wrap font-medium"
+                                className="w-full px-3 py-2 rounded-lg border border-neutral-200 text-sm bg-white focus:outline-none focus:border-neutral-400 resize-none overflow-hidden whitespace-pre-wrap font-medium"
                                 placeholder={t("notePlaceholder")}
                                 value={it.note}
                                 onChange={(e) => updateItem(s.id, it.id, { note: e.target.value })}
                               />
                               <input
-                                className="w-full px-3 py-2 rounded-xl border-2 border-neutral-900 text-sm bg-white focus:outline-none focus:bg-[#D5FF00]/10 font-medium"
+                                className="w-full px-3 py-2 rounded-lg border border-neutral-200 text-sm bg-white focus:outline-none focus:border-neutral-400 font-medium"
                                 placeholder={t("evidenceRef")}
                                 value={it.evidenceRef}
                                 onChange={(e) => updateItem(s.id, it.id, { evidenceRef: e.target.value })}
@@ -2271,7 +2282,7 @@ export default function App() {
               <div className="mt-3 overflow-auto">
                 <table className="w-full text-sm">
                   <thead className="text-left text-neutral-600">
-                    <tr className="border-b-2 border-neutral-900">
+                    <tr className="border-b border-neutral-200">
                       <th className="py-2 pr-2">{t("date")}</th>
                       <th className="py-2 pr-2">{t("type")}</th>
                       <th className="py-2 pr-2">{t("property")}</th>
@@ -2290,10 +2301,10 @@ export default function App() {
                         <td className="py-2 pr-2">
                           <span
                             className={
-                              "text-xs px-2 py-1 rounded-full border-2 font-bold " +
+                              "text-xs px-2 py-1 rounded-full font-medium border " +
                               (x.summary?.damaged
-                                ? "bg-red-500 text-white border-neutral-900"
-                                : "bg-emerald-300 text-neutral-900 border-neutral-900")
+                                ? "bg-red-500 text-white"
+                                : "bg-emerald-100 text-emerald-800")
                             }
                           >
                             {x.summary?.damaged || 0}
@@ -2305,7 +2316,7 @@ export default function App() {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               type="button"
-                              className="h-8 w-8 flex items-center justify-center rounded-lg border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-900 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-600 transition-all"
                               onClick={() => onViewInspection(x.id)}
                               title={t("view")}
                             >
@@ -2313,7 +2324,7 @@ export default function App() {
                             </button>
                             <button
                               type="button"
-                              className="h-8 w-8 flex items-center justify-center rounded-lg border-2 border-neutral-900 bg-white hover:bg-[#D5FF00] text-neutral-900 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-600 transition-all"
                               onClick={() => loadInspection(x.id)}
                               title={t("edit")}
                             >
@@ -2321,7 +2332,7 @@ export default function App() {
                             </button>
                             <button
                               type="button"
-                              className="h-8 w-8 flex items-center justify-center rounded-lg border-2 border-neutral-900 bg-white hover:bg-red-100 text-red-900 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border border-red-200 bg-white hover:bg-red-50 text-red-600 transition-all"
                               onClick={() => deleteInspection(x.id)}
                               title={t("delete")}
                             >
@@ -2341,20 +2352,14 @@ export default function App() {
         {/* Preview modal */}
         {previewOpen ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:block print:p-0 print:static">
-            <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity print:hidden" onClick={() => setPreviewOpen(false)} />
+            <div className="absolute inset-0 bg-neutral-800/60 backdrop-blur-sm transition-opacity print:hidden" onClick={() => setPreviewOpen(false)} />
 
-            <div className="relative w-full max-w-5xl max-h-[90vh] bg-white border-4 border-neutral-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden print:overflow-visible print:static flex flex-col print:border-none print:shadow-none print:max-h-none">
+            <div className="relative w-full max-w-5xl max-h-[90vh] bg-white rounded-xl shadow-2xl overflow-hidden print:overflow-visible print:static flex flex-col print:border-none print:shadow-none print:max-h-none">
               {/* Header */}
-              <div className="bg-[#D5FF00] p-6 border-b-4 border-neutral-900 flex items-start justify-between gap-4 print:hidden">
-                <div>
-                  <h2 className="text-3xl font-black text-neutral-900 tracking-tight uppercase transform -rotate-1">
-                    {t("printPreview")}
-                  </h2>
-                  <p className="text-neutral-900 font-bold mt-1 text-sm">{t("checkIt")}</p>
-                </div>
+              <div className="bg-neutral-50 p-6 border-b border-neutral-200 flex items-start justify-end gap-4 print:hidden">
                 <button
                   type="button"
-                  className="h-10 w-10 rounded-xl bg-white border-2 border-neutral-900 hover:bg-neutral-900 hover:text-[#D5FF00] flex items-center justify-center font-black text-xl transition-all active:translate-y-1"
+                  className="h-8 w-8 rounded-lg bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-500 hover:text-neutral-800 flex items-center justify-center transition-all"
                   onClick={() => setPreviewOpen(false)}
                 >
                   ✕
@@ -2368,9 +2373,8 @@ export default function App() {
                       <img
                         src={headingImage}
                         alt="Inspect-It"
-                        className="h-16 w-auto"
+                        className="h-40 w-auto"
                       />
-                      <div className="text-sm text-neutral-700 mt-1">{t("inspectionReport")}</div>
                     </div>
                     <div className="text-sm text-neutral-700">{t("generated")}: {new Date().toLocaleString(language)}</div>
                   </div>
@@ -2463,10 +2467,10 @@ export default function App() {
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t-4 border-neutral-900 bg-neutral-100 flex items-center justify-end gap-4 print:hidden">
+              <div className="p-4 border-t border-neutral-200 bg-neutral-50 flex items-center justify-end gap-4 print:hidden">
                 <button
                   type="button"
-                  className="px-6 py-2 rounded-xl text-sm font-bold border-2 border-neutral-900 bg-neutral-900 text-[#D5FF00] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[4px] active:shadow-none transition-all"
+                  className="px-6 py-2 rounded-lg text-sm font-medium bg-neutral-600 text-white hover:bg-neutral-500 transition-all"
                   onClick={() => window.print()}
                 >
                   {t("printSavePdf")}
