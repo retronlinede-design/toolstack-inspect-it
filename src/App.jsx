@@ -2087,7 +2087,6 @@ export default function App() {
     const options = {
       margin: 10,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
       html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
@@ -2109,13 +2108,8 @@ export default function App() {
       // Load the inspection data into the view so the PDF is correct
       loadInspection(inspection.id, false);
       // Give React time to render the DOM updates
-      await new Promise(resolve => setTimeout(resolve, 500));
       await new Promise(resolve => setTimeout(resolve, 800));
-
       const zip = new JSZip();
-      const pdfBlob = await generateReportPdf();
-      const photoMap = {};
-      let totalPhotos = 0;
 
       // Create inspection.json content
       const inspectionExport = {
@@ -2146,7 +2140,6 @@ export default function App() {
                 const ext = blob.type === "image/jpeg" ? "jpg" : "png";
                 const photoFilename = `${sanitizedItem}-${idx + 1}.${ext}`;
                 zip.folder("photos").file(photoFilename, blob);
-                totalPhotos++;
                 
                 itemPhotos.push({
                   id: photo.id,
@@ -2178,20 +2171,6 @@ export default function App() {
 
       const sanitizedProp = sanitizeFilename(inspection.propertyLabel || inspection.address || "inspection");
 
-      if (pdfBlob) {
-        zip.file("inspection-report.pdf", pdfBlob);
-
-        // Download PDF individually
-        const pdfUrl = URL.createObjectURL(pdfBlob);
-        const pdfLink = document.createElement("a");
-        pdfLink.href = pdfUrl;
-        pdfLink.download = `inspectit-${sanitizedProp}-report.pdf`;
-        document.body.appendChild(pdfLink);
-        pdfLink.click();
-        document.body.removeChild(pdfLink);
-        URL.revokeObjectURL(pdfUrl);
-      }
-
       // Generate zip blob and download
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const filename = `inspectit-${sanitizedProp}-pack.zip`;
@@ -2203,7 +2182,10 @@ export default function App() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+      // Open preview modal so user can download PDF manually if desired
+      setPreviewOpen(true);
     } catch (err) {
       console.error("Inspection pack download failed:", err);
       alert("Download failed: " + (err.message || "Unknown error"));
