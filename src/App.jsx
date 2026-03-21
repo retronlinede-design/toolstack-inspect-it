@@ -2457,10 +2457,6 @@ export default function App() {
               <FileTextIcon className="h-5 w-5" />
               <span>Preview</span>
             </button>
-            <button type="button" onClick={downloadAllPhotos} title="Download all photos" className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 shadow-sm hover:shadow">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-              <span>Download Photos</span>
-            </button>
             <button type="button" onClick={() => setImportExportOpen(true)} title="Import / Export" className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 shadow-sm hover:shadow">
               <ArchiveIcon className="h-5 w-5" />
               <span>Export</span>
@@ -2797,9 +2793,15 @@ export default function App() {
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                   <SmallButton onClick={resetDraft}>{t("reset")}</SmallButton>
-                  <SmallButton tone="primary" onClick={saveInspection}>
-                    {t("saveInspection")}
-                  </SmallButton>
+                  <div className="flex gap-2">
+                    <SmallButton onClick={downloadAllPhotos} className="flex items-center gap-2" title="Download photos from this inspection">
+                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                      <span>Download Photos</span>
+                    </SmallButton>
+                    <SmallButton tone="primary" onClick={saveInspection}>
+                      {t("saveInspection")}
+                    </SmallButton>
+                  </div>
                 </div>
               </div>
             </div>
