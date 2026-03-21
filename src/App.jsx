@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import JSZip from "jszip";
 
 import headingImage from "./assets/inspectit-heading.png";
 
@@ -106,6 +107,16 @@ async function deletePhotoBlob(storageKey) {
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
+}
+
+// Sanitize filename for safe download
+function sanitizeFilename(str) {
+  return String(str)
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-_\.]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 // ---------------------------
@@ -1105,7 +1116,7 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
             <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
               <li>{t("limitationsList1")}</li>
               <li>{t("limitationsList2")}</li>
-              <li>Photos are stored locally in this browser and are not included in JSON backups yet.</li>
+              <li>Photos are stored locally in this browser and are not included in JSON backups. However, you can download an Inspection Pack (ZIP) for each inspection, which includes the inspection data and all its photos.</li>
             </ul>
           </div>
 
@@ -1943,6 +1954,151 @@ export default function App() {
     }
   }
 
+  async function downloadPhoto(itemLabel, photoMeta, photoIndex) {
+    try {
+      const blob = await getPhotoBlob(photoMeta.storageKey);
+      if (!blob) {
+        console.warn("Photo blob not found:", photoMeta.storageKey);
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const sanitizedItem = sanitizeFilename(itemLabel);
+      const ext = blob.type === "image/jpeg" ? "jpg" : "png";
+      const filename = `inspectit-${sanitizedItem}-${photoIndex + 1}.${ext}`;
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Photo download failed:", err);
+    }
+  }
+
+  async function downloadAllPhotos() {
+    const allPhotos = [];
+    for (const sec of draft.sections) {
+      for (const it of sec.items) {
+        for (let idx = 0; idx < it.photos.length; idx++) {
+          allPhotos.push({ item: it, photo: it.photos[idx], itemIndex: allPhotos.filter(p => p.item.id === it.id).length });
+        }
+      }
+    }
+    if (allPhotos.length === 0) {
+      console.warn("No photos to download");
+      return;
+    }
+    let downloadCount = 0;
+    for (const { item, photo, itemIndex } of allPhotos) {
+      try {
+        const blob = await getPhotoBlob(photo.storageKey);
+        if (!blob) {
+          console.warn("Photo blob not found:", photo.storageKey);
+          continue;
+        }
+        const url = URL.createObjectURL(blob);
+        const sanitizedItem = sanitizeFilename(item.label);
+        const ext = blob.type === "image/jpeg" ? "jpg" : "png";
+        const filename = `inspectit-${sanitizeFilename(propertyLabel||"inspection")}-${sanitizedItem}-${itemIndex + 1}.${ext}`;
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        downloadCount++;
+      } catch (err) {
+        console.error("Photo download failed:", err);
+      }
+    }
+  }
+
+  async function downloadInspectionPack(inspection) {
+    try {
+      const zip = new JSZip();
+      const photoMap = {};
+      let totalPhotos = 0;
+
+      // Create inspection.json content
+      const inspectionExport = {
+        id: inspection.id,
+        createdAt: inspection.createdAt,
+        date: inspection.date,
+        inspectionType: inspection.inspectionType,
+        propertyLabel: inspection.propertyLabel,
+        address: inspection.address,
+        occupants: inspection.occupants,
+        notes: inspection.notes,
+        items: []
+      };
+
+      // Process sections and items
+      for (const sec of inspection.sections) {
+        for (const item of sec.items) {
+          const itemPhotos = [];
+          const itemPhotoCount = item.photos?.length || 0;
+          
+          // Process photos for this item
+          for (let idx = 0; idx < itemPhotoCount; idx++) {
+            const photo = item.photos[idx];
+            try {
+              const blob = await getPhotoBlob(photo.storageKey);
+              if (blob) {
+                const sanitizedItem = sanitizeFilename(item.label);
+                const ext = blob.type === "image/jpeg" ? "jpg" : "png";
+                const photoFilename = `${sanitizedItem}-${idx + 1}.${ext}`;
+                zip.folder("photos").file(photoFilename, blob);
+                totalPhotos++;
+                
+                itemPhotos.push({
+                  id: photo.id,
+                  name: photo.name,
+                  caption: photo.caption || "",
+                  createdAt: photo.createdAt,
+                  exportedFilename: photoFilename
+                });
+              }
+            } catch (err) {
+              console.warn("Failed to include photo in pack:", photo.storageKey, err);
+            }
+          }
+          
+          inspectionExport.items.push({
+            id: item.id,
+            label: item.label,
+            condition: item.condition,
+            note: item.note || "",
+            evidenceRef: item.evidenceRef || "",
+            photoCount: itemPhotoCount,
+            photos: itemPhotos
+          });
+        }
+      }
+
+      // Add inspection.json to the zip
+      zip.file("inspection.json", JSON.stringify(inspectionExport, null, 2));
+
+      // Generate zip blob and download
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const sanitizedProp = sanitizeFilename(inspection.propertyLabel || inspection.address || "inspection");
+      const filename = `inspectit-${sanitizedProp}-pack.zip`;
+      
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Inspection pack download failed:", err);
+    }
+  }
+
   function resetDraft() {
     setPropertyLabel("");
     setAddress("");
@@ -2301,6 +2457,10 @@ export default function App() {
               <FileTextIcon className="h-5 w-5" />
               <span>Preview</span>
             </button>
+            <button type="button" onClick={downloadAllPhotos} title="Download all photos" className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 shadow-sm hover:shadow">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              <span>Download Photos</span>
+            </button>
             <button type="button" onClick={() => setImportExportOpen(true)} title="Import / Export" className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 shadow-sm hover:shadow">
               <ArchiveIcon className="h-5 w-5" />
               <span>Export</span>
@@ -2588,7 +2748,7 @@ export default function App() {
                             {/* Photos */}
                             {it.photos.length > 0 && (
                               <div className="mt-3 grid grid-cols-3 gap-2">
-                                {it.photos.map(p => (
+                                {it.photos.map((p, idx) => (
                                   <div key={p.id} className="flex flex-col items-center">
                                     <img
                                       src={photoURLs[p.id]}
@@ -2606,15 +2766,23 @@ export default function App() {
                                       onChange={(e) => updatePhotoCaption(it.id, p.id, e.target.value)}
                                       placeholder="Caption"
                                     />
-                                    <button
-                                      className="mt-1 text-xs px-2 py-1 rounded border border-red-200 bg-red-50 hover:bg-red-100 text-red-700"
-                                      onClick={async () => {
-                                        await deletePhotoBlob(p.storageKey);
-                                        removePhotoMetaFromItem(it.id, p.id);
-                                      }}
-                                    >
-                                      Delete
-                                    </button>
+                                    <div className="w-full flex gap-1 mt-1">
+                                      <button
+                                        className="flex-1 text-xs px-2 py-1 rounded border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700"
+                                        onClick={() => downloadPhoto(it.label, p, idx)}
+                                      >
+                                        Download
+                                      </button>
+                                      <button
+                                        className="flex-1 text-xs px-2 py-1 rounded border border-red-200 bg-red-50 hover:bg-red-100 text-red-700"
+                                        onClick={async () => {
+                                          await deletePhotoBlob(p.storageKey);
+                                          removePhotoMetaFromItem(it.id, p.id);
+                                        }}
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
@@ -2694,6 +2862,14 @@ export default function App() {
                               title={t("edit")}
                             >
                               <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-600 transition-all"
+                              onClick={() => downloadInspectionPack(x)}
+                              title="Download inspection pack"
+                            >
+                              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                             </button>
                             <button
                               type="button"
@@ -2805,13 +2981,15 @@ export default function App() {
                                 {it.evidenceRef ? <div className="text-neutral-600">{t("evidencePrefix")}{it.evidenceRef}</div> : null}
                                 {it.photos.length > 0 && (
                                   <div className="mt-2 grid grid-cols-2 gap-1">
-                                    {it.photos.map(p => (
+                                    {it.photos.map((p, idx) => (
                                       <div key={p.id} className="flex flex-col">
                                         {photoURLs[p.id] && (
                                           <img
                                             src={photoURLs[p.id]}
                                             alt={p.name}
-                                            className="max-w-24 max-h-24 object-cover border border-neutral-200"
+                                            className="max-w-24 max-h-24 object-cover border border-neutral-200 cursor-pointer"
+                                            onClick={() => downloadPhoto(it.label, p, idx)}
+                                            title="Click to download"
                                           />
                                         )}
                                         {p.caption && <div className="text-xs text-neutral-600 mt-1">{p.caption}</div>}
