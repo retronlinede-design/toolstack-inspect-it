@@ -49,6 +49,92 @@ function uid(prefix = "id") {
 }
 
 // ---------------------------
+// Photo storage foundation (IndexedDB helpers)
+// ---------------------------
+
+const PHOTOS_DB_NAME = "toolstack.inspectit.photos";
+const PHOTOS_STORE_NAME = "photos";
+
+function openPhotosDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(PHOTOS_DB_NAME, 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(PHOTOS_STORE_NAME)) {
+        db.createObjectStore(PHOTOS_STORE_NAME, { keyPath: "id" });
+      }
+    };
+  });
+}
+
+async function savePhotoBlob(storageKey, blob, mimeType) {
+  const db = await openPhotosDb();
+  const transaction = db.transaction([PHOTOS_STORE_NAME], "readwrite");
+  const store = transaction.objectStore(PHOTOS_STORE_NAME);
+  const record = {
+    id: storageKey,
+    blob,
+    mimeType,
+    createdAt: new Date()
+  };
+  return new Promise((resolve, reject) => {
+    const request = store.put(record);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function getPhotoBlob(storageKey) {
+  const db = await openPhotosDb();
+  const transaction = db.transaction([PHOTOS_STORE_NAME], "readonly");
+  const store = transaction.objectStore(PHOTOS_STORE_NAME);
+  return new Promise((resolve, reject) => {
+    const request = store.get(storageKey);
+    request.onsuccess = () => resolve(request.result ? request.result.blob : null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function deletePhotoBlob(storageKey) {
+  const db = await openPhotosDb();
+  const transaction = db.transaction([PHOTOS_STORE_NAME], "readwrite");
+  const store = transaction.objectStore(PHOTOS_STORE_NAME);
+  return new Promise((resolve, reject) => {
+    const request = store.delete(storageKey);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// ---------------------------
+// Image compression helper
+// ---------------------------
+
+async function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Calculate new dimensions (max width 1600px)
+      const maxWidth = 1600;
+      const ratio = Math.min(maxWidth / img.width, 1);
+      canvas.width = img.width * ratio;
+      canvas.height = img.height * ratio;
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(resolve, 'image/jpeg', 0.75);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// ---------------------------
 // localStorage safe wrapper
 // ---------------------------
 
@@ -214,8 +300,32 @@ function ArchiveIcon({ className = "" }) {
   );
 }
 
+function ChevronDownIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+}
+
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
+}
+
+// ---------------------------
+// Item normalization helper
+// ---------------------------
+
+function normalizeItem(it) {
+  return { ...it, photos: it.photos || [] };
 }
 
 // ---------------------------
@@ -991,6 +1101,7 @@ function HelpModal({ open, onClose, onReset, language = "en" }) {
             <ul className="text-sm text-neutral-700 space-y-2 list-disc list-inside">
               <li>{t("limitationsList1")}</li>
               <li>{t("limitationsList2")}</li>
+              <li>Photos are stored locally in this browser and are not included in JSON backups yet.</li>
             </ul>
           </div>
 
@@ -1357,6 +1468,7 @@ function buildDraftFromTemplate(tpl, { date, inspectionType, propertyLabel, addr
         condition: "ok",
         note: "",
         evidenceRef: "",
+        photos: [],
       })),
     })),
   };
@@ -1410,6 +1522,7 @@ export default function App() {
   const [deleteItemState, setDeleteItemState] = useState({ open: false, sectionId: null, itemId: null });
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [importExportOpen, setImportExportOpen] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState(new Set());
 
   const fileRef = useRef(null);
 
@@ -1436,6 +1549,38 @@ export default function App() {
     const t = loadState().template;
     return buildDraftFromTemplate(t, { date, inspectionType, propertyLabel: "", address: "", occupants: "", notes: "" });
   });
+
+  // total photos helper
+  const totalPhotos = useMemo(() =>
+    draft.sections.flatMap(s => s.items).reduce((sum, it) => sum + (it.photos?.length || 0), 0),
+    [draft]
+  );
+
+  // photo URLs for thumbnails
+  const [photoURLs, setPhotoURLs] = useState({});
+  useEffect(() => {
+    const load = async () => {
+      const newURLs = {};
+      for (const s of draft.sections) {
+        for (const it of s.items) {
+          for (const p of it.photos) {
+            if (!photoURLs[p.id]) {
+              const blob = await getPhotoBlob(p.storageKey);
+              if (blob) newURLs[p.id] = URL.createObjectURL(blob);
+            } else {
+              newURLs[p.id] = photoURLs[p.id];
+            }
+          }
+        }
+      }
+      // revoke old ones not in new
+      Object.keys(photoURLs).forEach(id => {
+        if (!newURLs[id]) URL.revokeObjectURL(photoURLs[id]);
+      });
+      setPhotoURLs(newURLs);
+    };
+    load();
+  }, [draft]);
 
   // persist profile
   useEffect(() => {
@@ -1513,6 +1658,18 @@ export default function App() {
     setAddSectionOpen(false);
   }
 
+  function toggleSection(sectionId) {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(sectionId)) {
+        next.delete(sectionId);
+      } else {
+        next.add(sectionId);
+      }
+      return next;
+    });
+  }
+
   function finishEditingSection(sectionId, newTitle) {
     const nextTitle = String(newTitle).trim();
     if (!nextTitle) {
@@ -1579,7 +1736,7 @@ export default function App() {
           ? s
           : {
               ...s,
-              items: [...(s.items || []), { id: itemId, label: nextLabel, condition: "ok", note: "", evidenceRef: "" }],
+              items: [...(s.items || []), { id: itemId, label: nextLabel, condition: "ok", note: "", evidenceRef: "", photos: [] }],
             }
       ),
     }));
@@ -1670,7 +1827,10 @@ export default function App() {
       address: ins.address,
       occupants: ins.occupants,
       notes: ins.notes,
-      sections: JSON.parse(JSON.stringify(ins.sections)),
+      sections: JSON.parse(JSON.stringify(ins.sections)).map(s => ({
+        ...s,
+        items: s.items.map(normalizeItem)
+      })),
     });
     
     if (shouldScroll) {
@@ -1681,6 +1841,74 @@ export default function App() {
   function onViewInspection(id) {
     loadInspection(id, false);
     setPreviewOpen(true);
+  }
+
+  // photo handlers
+  function addPhotoMetaToItem(itemId, photoMeta) {
+    const item = draft.sections.flatMap(s => s.items).find(it => it.id === itemId);
+    if (!item || item.photos.length >= 3 || totalPhotos >= 20) return false;
+    setDraft(d => ({
+      ...d,
+      sections: d.sections.map(s => ({
+        ...s,
+        items: s.items.map(it =>
+          it.id === itemId ? { ...it, photos: [...it.photos, photoMeta] } : it
+        )
+      }))
+    }));
+    return true;
+  }
+
+  function updatePhotoCaption(itemId, photoId, caption) {
+    setDraft(d => ({
+      ...d,
+      sections: d.sections.map(s => ({
+        ...s,
+        items: s.items.map(it =>
+          it.id === itemId ? { ...it, photos: it.photos.map(p => p.id === photoId ? { ...p, caption } : p) } : it
+        )
+      }))
+    }));
+  }
+
+  function removePhotoMetaFromItem(itemId, photoId) {
+    if (photoURLs[photoId]) {
+      URL.revokeObjectURL(photoURLs[photoId]);
+      setPhotoURLs(prev => {
+        const next = { ...prev };
+        delete next[photoId];
+        return next;
+      });
+    }
+    setDraft(d => ({
+      ...d,
+      sections: d.sections.map(s => ({
+        ...s,
+        items: s.items.map(it =>
+          it.id === itemId ? { ...it, photos: it.photos.filter(p => p.id !== photoId) } : it
+        )
+      }))
+    }));
+  }
+
+  async function handlePhotoUpload(sectionId, itemId, file) {
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file);
+      const photoId = uid("p");
+      const storageKey = `photo-${photoId}`;
+      await savePhotoBlob(storageKey, compressed, file.type);
+      const photoMeta = {
+        id: photoId,
+        storageKey,
+        name: file.name,
+        caption: "",
+        createdAt: new Date()
+      };
+      addPhotoMetaToItem(itemId, photoMeta);
+    } catch (err) {
+      console.error("Photo upload failed:", err);
+    }
   }
 
   function resetDraft() {
@@ -2152,12 +2380,22 @@ export default function App() {
 
                 {/* Sections */}
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {(draft.sections || []).map((s, index) => (
+                  {(draft.sections || []).map((s, index) => {
+                    const isCollapsed = collapsedSections.has(s.id);
+                    return (
                     <div
                       key={s.id}
                       className="rounded-xl border border-neutral-200 p-4 bg-neutral-50 hover:border-neutral-300 hover:shadow-md transition-all"
                     >
                       <div className="flex items-start justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleSection(s.id)}
+                          className="mt-1 text-neutral-400 hover:text-neutral-700 transition-colors"
+                          title={isCollapsed ? "Expand" : "Collapse"}
+                        >
+                          {isCollapsed ? <ChevronRightIcon className="h-5 w-5" /> : <ChevronDownIcon className="h-5 w-5" />}
+                        </button>
                         <div className="min-w-0 flex-1 group">
                           {editingSectionId === s.id ? (
                             <input
@@ -2191,6 +2429,7 @@ export default function App() {
                         </div>
                       </div>
 
+                      {!isCollapsed && (
                       <div className="mt-3 space-y-2">
                         {(s.items || []).length === 0 ? (
                           <div className="text-sm text-neutral-600">{t("noItemsYet")}</div>
@@ -2254,12 +2493,62 @@ export default function App() {
                                 value={it.evidenceRef}
                                 onChange={(e) => updateItem(s.id, it.id, { evidenceRef: e.target.value })}
                               />
+                              <div className="flex items-center gap-2">
+                                <input
+                                  id={`photo-${it.id}`}
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handlePhotoUpload(s.id, it.id, e.target.files[0])}
+                                  hidden
+                                />
+                                <label
+                                  htmlFor={`photo-${it.id}`}
+                                  className={`text-xs px-2 py-1 rounded border transition-colors ${
+                                    it.photos.length >= 3 || totalPhotos >= 20
+                                      ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                                      : "border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-600 cursor-pointer"
+                                  }`}
+                                >
+                                  Add Photo ({it.photos.length}/3)
+                                </label>
+                              </div>
                             </div>
+
+                            {/* Photos */}
+                            {it.photos.length > 0 && (
+                              <div className="mt-3 grid grid-cols-3 gap-2">
+                                {it.photos.map(p => (
+                                  <div key={p.id} className="flex flex-col items-center">
+                                    <img
+                                      src={photoURLs[p.id]}
+                                      alt={p.name}
+                                      className="w-16 h-16 object-cover rounded border border-neutral-200"
+                                    />
+                                    <input
+                                      className="w-full mt-1 px-2 py-1 text-xs rounded border border-neutral-200 bg-white focus:outline-none focus:border-neutral-400"
+                                      value={p.caption}
+                                      onChange={(e) => updatePhotoCaption(it.id, p.id, e.target.value)}
+                                      placeholder="Caption"
+                                    />
+                                    <button
+                                      className="mt-1 text-xs px-2 py-1 rounded border border-red-200 bg-red-50 hover:bg-red-100 text-red-700"
+                                      onClick={async () => {
+                                        await deletePhotoBlob(p.storageKey);
+                                        removePhotoMetaFromItem(it.id, p.id);
+                                      }}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
+                      )}
                     </div>
-                  ))}
+                  );})}
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -2438,6 +2727,22 @@ export default function App() {
                                 <div className="font-medium text-neutral-800">{it.label}</div>
                                 {it.note ? <div className="text-neutral-600 whitespace-pre-wrap">{it.note}</div> : null}
                                 {it.evidenceRef ? <div className="text-neutral-600">{t("evidencePrefix")}{it.evidenceRef}</div> : null}
+                                {it.photos.length > 0 && (
+                                  <div className="mt-2 grid grid-cols-2 gap-1">
+                                    {it.photos.map(p => (
+                                      <div key={p.id} className="flex flex-col">
+                                        {photoURLs[p.id] && (
+                                          <img
+                                            src={photoURLs[p.id]}
+                                            alt={p.name}
+                                            className="max-w-24 max-h-24 object-cover border border-neutral-200"
+                                          />
+                                        )}
+                                        {p.caption && <div className="text-xs text-neutral-600 mt-1">{p.caption}</div>}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                               <span className={`text-xs px-2 py-1 rounded-full border ${badgeClass(it.condition)}`}>
                                 {t(`condition_${it.condition}`) || "OK"}
